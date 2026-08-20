@@ -64,25 +64,6 @@ Nothing here is a sprite. Nothing here is an MP3. **Every pixel and every sound 
 
 ---
 
-## 📊 BY THE NUMBERS
-
-| | |
-|---:|---|
-| **1** | file, and it opens with a double-click |
-| **0** | dependencies |
-| **0** | build steps |
-| **0** | image assets on disk |
-| **0** | breaks taken while writing it |
-| **2,697** | lines of HTML, CSS and JavaScript |
-| **99 KB** | the entire game |
-| **43** | persistent achievements |
-| **5** | types of cyber-matter |
-| **400** | tiles on the grid |
-| **150** | BPM, synthesized live |
-| **160** | particles off a single nuke |
-
----
-
 ## ⚡ ULTRA WEAPONRY & POWER-UP ARSENAL
 
 <div align="center">
