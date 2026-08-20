@@ -217,8 +217,8 @@
     /* Top HUD Row */
     .hud-grid {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 0.6rem;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 0.5rem;
       width: 560px;
     }
 
@@ -261,6 +261,25 @@
       font-weight: 900;
       color: #fff;
       text-shadow: 0 0 12px #00ffff;
+    }
+
+    .gamepad-tag {
+      font-size: 0.85rem;
+      font-weight: 900;
+      color: #666;
+      transition: all 0.3s ease;
+      letter-spacing: 1px;
+    }
+
+    .gamepad-tag.connected {
+      color: var(--neon-lime);
+      text-shadow: 0 0 10px var(--neon-lime);
+      animation: padPulse 1s infinite alternate;
+    }
+
+    @keyframes padPulse {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.08); }
     }
 
     /* Multi-tier Fever Mode Energy Bar */
@@ -455,7 +474,7 @@
   <div class="master-wrapper">
     <!-- Sidebar: Trophy Gallery -->
     <div class="sidebar">
-      <div class="sidebar-title">🔥 ACHIEVEMENTS (<span id="achieve-count">0/12</span>)</div>
+      <div class="sidebar-title">🔥 ACHIEVEMENTS (<span id="achieve-count">0/13</span>)</div>
       <div class="achievements-list" id="achieve-list"></div>
     </div>
 
@@ -484,6 +503,10 @@
         <div class="hud-cell">
           <span class="hud-lbl">BEST</span>
           <span id="best-val" class="hud-val" style="color: var(--neon-cyan);">0</span>
+        </div>
+        <div class="hud-cell">
+          <span class="hud-lbl">PAD</span>
+          <span id="pad-val" class="hud-val gamepad-tag">OFF</span>
         </div>
       </div>
 
@@ -732,6 +755,7 @@
       { id: 'speed_demon', icon: '🚀', title: 'WARP FACTOR 9', desc: 'Reach 200%+ game engine speed' },
       { id: 'long_boi', icon: '🐉', title: 'COSMIC OUROBOROS', desc: 'Grow the snake to length 25' },
       { id: 'titan_len', icon: '👑', title: 'WORLD DEVOURER', desc: 'Grow the snake to length 40' },
+      { id: 'pad_warrior', icon: '🎮', title: 'CONTROLLER OVERLORD', desc: 'Plug in an Xbox or USB gamepad' },
       { id: 'score_1k', icon: '💎', title: 'HIGH ROLLER (1K)', desc: 'Score over 1,000 points' },
       { id: 'score_3k', icon: '⭐', title: 'IMMORTAL DEITY (3K)', desc: 'Score over 3,000 points' },
       { id: 'ghost_slayer', icon: '👻', title: 'DEATH DEFIER', desc: 'Survive in Fever mode for 10 seconds' }
@@ -810,13 +834,123 @@
     const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');
 
-    // DOM References
-    const scoreEl = document.getElementById('score');
-    const comboEl = document.getElementById('combo-val');
-    const lenEl = document.getElementById('len-val');
-    const speedEl = document.getElementById('speed-val');
-    const bestEl = document.getElementById('best-val');
-    const comboCell = document.getElementById('combo-cell');
+    /* =========================================================================
+       GAMEPAD HAPTIC RUMBLE (Dual-Rumble Motors for Xbox / DualShock / Standard)
+       ========================================================================= */
+    function rumbleGamepad(duration = 150, weak = 0.5, strong = 0.5) {
+      if (!navigator.getGamepads) return;
+      const gamepads = navigator.getGamepads();
+      for (let i = 0; i < gamepads.length; i++) {
+        const gp = gamepads[i];
+        if (gp && gp.vibrationActuator && gp.vibrationActuator.playEffect) {
+          gp.vibrationActuator.playEffect('dual-rumble', {
+            startDelay: 0,
+            duration: duration,
+            weakMagnitude: Math.min(1, weak),
+            strongMagnitude: Math.min(1, strong)
+          }).catch(() => {});
+        } else if (gp && gp.hapticActuators && gp.hapticActuators[0] && gp.hapticActuators[0].pulse) {
+          gp.hapticActuators[0].pulse(strong, duration).catch(() => {});
+        }
+      }
+    }
+
+    /* =========================================================================
+       GAMEPAD POLLING ENGINE (Xbox standard layout mapping + Analog Deadzones)
+       ========================================================================= */
+    const STICK_DEADZONE = 0.35;
+    let prevPadButtons = {};
+    let prevPadAxes = { x: 0, y: 0 };
+
+    function pollGamepads() {
+      if (!navigator.getGamepads) return;
+      const gamepads = navigator.getGamepads();
+      let activePad = null;
+
+      for (let i = 0; i < gamepads.length; i++) {
+        if (gamepads[i] && gamepads[i].connected) {
+          activePad = gamepads[i];
+          break;
+        }
+      }
+
+      if (activePad) {
+        padEl.textContent = 'PAD 1';
+        padEl.classList.add('connected');
+        unlockAchievement('pad_warrior');
+
+        const b = activePad.buttons;
+        const axes = activePad.axes;
+
+        // Button press helper with rising-edge latching
+        const isPressed = (idx) => b[idx] && (b[idx].pressed || b[idx].value > 0.5);
+        const wasPressed = (idx) => !!prevPadButtons[idx];
+
+        // Standard Xbox Mapping:
+        // D-Pad: 12 (Up), 13 (Down), 14 (Left), 15 (Right)
+        // Face buttons: 0 (A), 1 (B), 2 (X), 3 (Y), 9 (Start), 8 (Back/View)
+        // Left Stick: Axes 0 (X), Axes 1 (Y)
+        // Right Stick: Axes 2 (X), Axes 3 (Y)
+
+        let targetDir = null;
+
+        // D-Pad checks (rising edge)
+        if (isPressed(12) && !wasPressed(12)) targetDir = 'ArrowUp';
+        else if (isPressed(13) && !wasPressed(13)) targetDir = 'ArrowDown';
+        else if (isPressed(14) && !wasPressed(14)) targetDir = 'ArrowLeft';
+        else if (isPressed(15) && !wasPressed(15)) targetDir = 'ArrowRight';
+
+        // Left Thumbstick checks with deadzone latching
+        const stickX = axes[0] !== undefined ? axes[0] : 0;
+        const stickY = axes[1] !== undefined ? axes[1] : 0;
+
+        if (Math.abs(stickX) > STICK_DEADZONE || Math.abs(stickY) > STICK_DEADZONE) {
+          if (Math.abs(stickX) > Math.abs(stickY)) {
+            if (stickX > STICK_DEADZONE && prevPadAxes.x <= STICK_DEADZONE) targetDir = 'ArrowRight';
+            else if (stickX < -STICK_DEADZONE && prevPadAxes.x >= -STICK_DEADZONE) targetDir = 'ArrowLeft';
+          } else {
+            if (stickY > STICK_DEADZONE && prevPadAxes.y <= STICK_DEADZONE) targetDir = 'ArrowDown';
+            else if (stickY < -STICK_DEADZONE && prevPadAxes.y >= -STICK_DEADZONE) targetDir = 'ArrowUp';
+          }
+        }
+
+        prevPadAxes.x = stickX;
+        prevPadAxes.y = stickY;
+
+        // Start / A / X button to start or respawn
+        if ((isPressed(0) && !wasPressed(0)) || (isPressed(9) && !wasPressed(9)) || (isPressed(2) && !wasPressed(2))) {
+          if (gameOver || !gameStarted) {
+            handleAction('Enter');
+            rumbleGamepad(150, 0.4, 0.4);
+          }
+        }
+
+        if (targetDir) {
+          handleAction(targetDir);
+        }
+
+        // Cache button state for edge detection
+        prevPadButtons = {};
+        for (let j = 0; j < b.length; j++) {
+          prevPadButtons[j] = isPressed(j);
+        }
+      } else {
+        padEl.textContent = 'OFF';
+        padEl.classList.remove('connected');
+      }
+    }
+
+    window.addEventListener('gamepadconnected', (e) => {
+      unlockAchievement('pad_warrior');
+      triggerScreamer('🎮 GAMEPAD CONNECTED 🎮', '#00ff66');
+      rumbleGamepad(250, 0.6, 0.8);
+      if (actx) playExtremeSound('achieve');
+    });
+
+    window.addEventListener('gamepaddisconnected', () => {
+      padEl.textContent = 'OFF';
+      padEl.classList.remove('connected');
+    });
     const feverFill = document.getElementById('fever-fill');
     const feverTxt = document.getElementById('fever-txt');
     const rig = document.getElementById('rig-container');
@@ -1098,6 +1232,7 @@
           screenShake = 45;
           cameraZoom = 1.25;
           flashIntensity = 0.9;
+          rumbleGamepad(450, 0.7, 1.0);
           spawnHyperExplosion(hx, hy, 140, ['#bd00ff', '#00ffff', '#fff', '#ff00ff'], 1.5);
           addShockwave(hx, hy, '#bd00ff', 350);
           addFloatingText(`🌌 BLACK HOLE +${Math.round(basePoints * mult)}!`, hx, hy - 25, '#bd00ff', 2.2);
@@ -1116,6 +1251,7 @@
           cameraRotate = (Math.random() - 0.5) * 0.25;
           cameraZoom = 1.2;
           flashIntensity = 1.0;
+          rumbleGamepad(600, 1.0, 1.0);
           spawnHyperExplosion(hx, hy, 160, ['#ff0033', '#ffee00', '#fff', '#ff5500'], 1.8);
           addShockwave(hx, hy, '#ff0033', 400);
           addFloatingText(`☢️ NUCLEAR OVERKILL +${Math.round(basePoints * mult)}!`, hx, hy - 25, '#ff0033', 2.4);
@@ -1131,6 +1267,7 @@
           playExtremeSound('eat_laser');
           basePoints = 60;
           screenShake = 25;
+          rumbleGamepad(180, 0.6, 0.3);
           spawnHyperExplosion(hx, hy, 70, ['#00ffff', '#fff', '#0088ff']);
           addShockwave(hx, hy, '#00ffff', 220);
           addFloatingText(`⚡ LASER BURST +${Math.round(basePoints * mult)}!`, hx, hy - 20, '#00ffff', 1.8);
@@ -1142,6 +1279,7 @@
           playExtremeSound('eat_laser');
           basePoints = 40;
           screenShake = 20;
+          rumbleGamepad(140, 0.5, 0.4);
           spawnHyperExplosion(hx, hy, 60, ['#ffee00', '#ff0055', '#fff']);
           addShockwave(hx, hy, '#ffee00', 200);
           addFloatingText(`⭐ HYPER STAR +${Math.round(basePoints * mult)}!`, hx, hy - 15, '#ffee00', 1.6);
@@ -1149,6 +1287,7 @@
         } else {
           playExtremeSound('eat_normal');
           screenShake = 12;
+          rumbleGamepad(70, 0.3, 0.1);
           spawnHyperExplosion(hx, hy, 35, ['#00ff66', '#00ffff', '#fff']);
           addShockwave(hx, hy, '#00ff66', 130);
           addFloatingText(`+${Math.round(basePoints * mult)}`, hx, hy - 10, '#00ff66', 1.3);
@@ -1185,6 +1324,7 @@
       triggerScreamer('⚡ RAINBOW FEVER ⚡', '#ffee00');
       screenShake = 50;
       flashIntensity = 0.8;
+      rumbleGamepad(400, 0.8, 0.8);
       setTimeout(() => {
         if (gameStarted && !gameOver) unlockAchievement('ghost_slayer');
       }, 7900);
@@ -1198,6 +1338,7 @@
       cameraZoom = 1.3;
       cameraRotate = 0.3;
       triggerScreamer('💀 CRITICAL DESTRUCTION 💀', '#ff0033');
+      rumbleGamepad(800, 1.0, 1.0);
 
       // Sequentially vaporize every single segment in an apocalyptic fireworks chain
       snake.forEach((seg, idx) => {
@@ -1217,6 +1358,8 @@
        ========================================================================= */
     function renderLoop(timestamp) {
       requestAnimationFrame(renderLoop);
+
+      pollGamepads();
 
       rainbowHue = (rainbowHue + 3) % 360;
 
@@ -1551,7 +1694,7 @@
         ctx.font = '700 16px "Orbitron", sans-serif';
         ctx.fillStyle = '#ff0055';
         ctx.shadowColor = '#ff0055';
-        ctx.fillText('PRESS ANY ARROW OR WASD TO IGNITE', canvas.width / 2, canvas.height / 2 + 25);
+        ctx.fillText('PRESS ARROW / WASD / [A] BUTTON TO IGNITE', canvas.width / 2, canvas.height / 2 + 25);
         ctx.restore();
       } else if (gameOver) {
         ctx.save();
@@ -1574,7 +1717,7 @@
         ctx.font = '700 15px "Orbitron", sans-serif';
         ctx.fillStyle = '#00ffff';
         ctx.shadowColor = '#00ffff';
-        ctx.fillText('PRESS SPACE / ENTER TO RESPAWN', canvas.width / 2, canvas.height / 2 + 55);
+        ctx.fillText('PRESS SPACE / ENTER / [A] TO RESPAWN', canvas.width / 2, canvas.height / 2 + 55);
         ctx.restore();
       }
 

@@ -70,11 +70,14 @@ No MP3s. No WAV files. No network lag.
 
 ---
 
-## 🎮 CONTROLS
+## 🎮 CONTROLS & HARDWARE SUPPORT
 
-- **Arrow Keys** or **WASD** to steer the dragon.
-- **Space** / **Enter** to respawn from the ashes.
-- **On-Screen Touch D-Pad** automatically enabled on mobile and tablet displays.
+- ⌨️ **Keyboard**: Arrow Keys or WASD to steer, Space / Enter to restart.
+- 🎮 **Xbox / Bluetooth Gamepad API**:
+  - **D-Pad / Left Thumbstick**: Full 4-way navigation with analog deadzone filtering.
+  - **A / X / Start button**: Start game / Instant Respawn.
+  - **Dual-Rumble Haptic Feedback**: Dynamic low/high-frequency motor vibration triggers on eating, nuke detonations, laser bursts, black holes, and deaths.
+- 📱 **Touch D-Pad**: Automatic on-screen touch overlay on phones & tablets.
 
 ---
 
