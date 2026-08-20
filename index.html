@@ -875,7 +875,7 @@
       { id: 'pad_warrior', icon: '🎮', title: 'CONTROLLER OVERLORD', desc: 'Plug in an Xbox or USB gamepad' },
       { id: 'score_1k', icon: '💎', title: 'HIGH ROLLER (1K)', desc: 'Score over 1,000 points' },
       { id: 'score_3k', icon: '⭐', title: 'IMMORTAL DEITY (3K)', desc: 'Score over 3,000 points' },
-      { id: 'ghost_slayer', icon: '👻', title: 'DEATH DEFIER', desc: 'Survive in Fever mode for 10 seconds' }
+      { id: 'ghost_slayer', icon: '👻', title: 'DEATH DEFIER', desc: 'Survive an entire Fever Mode cycle' }
     ];
 
     let unlockedAchieves = storageGetJSON('hyper_snake_achieves', {});
@@ -1158,6 +1158,9 @@
     let flashIntensity = 0;
     let rainbowHue = 0;
     let lastTick = 0;
+    let lastFrame = 0;
+    const FRAME_MS = 1000 / 60;   // every FX constant below was tuned at 60fps
+    const MAX_FRAME_MS = 100;     // clamp so a backgrounded tab doesn't jump on return
 
     bestEl.textContent = highScore;
 
@@ -1519,9 +1522,6 @@
       screenShake = 50;
       flashIntensity = 0.8;
       rumbleGamepad(400, 0.8, 0.8);
-      setTimeout(() => {
-        if (gameStarted && !gameOver) unlockAchievement('ghost_slayer');
-      }, 7900);
     }
 
     function annihilateSnake(reason) {
@@ -1557,14 +1557,25 @@
 
       pollGamepads();
 
-      rainbowHue = (rainbowHue + 3) % 360;
+      // Everything below used to advance by a fixed amount per frame, which tied
+      // fever duration and every FX decay to the display's refresh rate (fever ran
+      // 3.3s instead of 8s at 144Hz). `step` is elapsed time in 60fps frames, so
+      // the original constants still read the way they were tuned.
+      if (!lastFrame) lastFrame = timestamp - FRAME_MS;
+      const dt = Math.min(timestamp - lastFrame, MAX_FRAME_MS);
+      lastFrame = timestamp;
+      const step = dt / FRAME_MS;
+      // Exponential decays need per-second-correct falloff, not rate * step.
+      const decay = (perFrame) => Math.pow(perFrame, step);
+
+      rainbowHue = (rainbowHue + 3 * step) % 360;
 
       // Render Ambient Background Galaxy Particles
       if (!lowGraphics) {
         bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
         bgParticles.forEach(bp => {
-          bp.x += bp.vx * (feverActive ? 4 : 1);
-          bp.y += bp.vy * (feverActive ? 4 : 1);
+          bp.x += bp.vx * (feverActive ? 4 : 1) * step;
+          bp.y += bp.vy * (feverActive ? 4 : 1) * step;
           if (bp.x < 0) bp.x = bgCanvas.width;
           if (bp.x > bgCanvas.width) bp.x = 0;
           if (bp.y < 0) bp.y = bgCanvas.height;
@@ -1603,13 +1614,16 @@
 
       // FEVER GAUGE DYNAMICS
       if (feverActive) {
-        feverTimeLeft -= 16.6;
+        feverTimeLeft -= dt;
         const progress = Math.max(0, feverTimeLeft / feverDuration);
         feverFill.style.width = (progress * 100) + '%';
-        feverTxt.textContent = `⚡ FEVER ACTIVE: ${(feverTimeLeft/1000).toFixed(1)}s (GODMODE) ⚡`;
+        feverTxt.textContent = `⚡ FEVER ACTIVE: ${(Math.max(0, feverTimeLeft)/1000).toFixed(1)}s (GODMODE) ⚡`;
         if (feverTimeLeft <= 0) {
           feverActive = false;
           feverEnergy = 0;
+          // Riding a full fever cycle out is the achievement. Checking it here
+          // rather than on a wall-clock timer keeps it honest at any refresh rate.
+          if (gameStarted && !gameOver) unlockAchievement('ghost_slayer');
         }
       } else {
         feverFill.style.width = feverEnergy + '%';
@@ -1617,8 +1631,9 @@
       }
 
       // Smooth Camera Decay
-      cameraZoom += (1 - cameraZoom) * 0.08;
-      cameraRotate += (0 - cameraRotate) * 0.08;
+      const cameraPull = 1 - decay(0.92);
+      cameraZoom += (1 - cameraZoom) * cameraPull;
+      cameraRotate += (0 - cameraRotate) * cameraPull;
 
       let shakeX = 0, shakeY = 0;
       if (!lowGraphics && screenShake > 0) {
@@ -1626,7 +1641,7 @@
         shakeY = (Math.random() - 0.5) * screenShake * 2.5;
       }
       if (screenShake > 0) {
-        screenShake *= 0.88;
+        screenShake *= decay(0.88);
         if (screenShake < 0.2) screenShake = 0;
       }
 
@@ -1643,7 +1658,7 @@
         superFlash.style.opacity = 0;
       }
       if (flashIntensity > 0) {
-        flashIntensity *= 0.82;
+        flashIntensity *= decay(0.82);
       }
 
       if (!lowGraphics) {
@@ -1704,14 +1719,15 @@
         ctx.stroke();
         ctx.restore();
 
-        beam.life -= 0.05;
+        beam.life -= 0.05 * step;
         if (beam.life <= 0) cosmicLasers.splice(i, 1);
       }
 
       // Snake Body Trail Sparkles
       if (!lowGraphics && gameStarted && !gameOver) {
+        const sparkleChance = 0.4 * step;
         snake.forEach((seg, idx) => {
-          if (Math.random() < 0.4) {
+          if (Math.random() < sparkleChance) {
             particles.push({
               x: seg.x * GRID_SIZE + Math.random() * GRID_SIZE,
               y: seg.y * GRID_SIZE + Math.random() * GRID_SIZE,
@@ -1840,7 +1856,7 @@
         ctx.stroke();
         ctx.restore();
 
-        bolt.life -= 0.07;
+        bolt.life -= 0.07 * step;
         if (bolt.life <= 0) lightningBolts.splice(i, 1);
       }
 
@@ -1858,19 +1874,20 @@
         ctx.stroke();
         ctx.restore();
 
-        sw.radius += 10;
-        sw.opacity -= 0.035;
+        sw.radius += 10 * step;
+        sw.opacity -= 0.035 * step;
         if (sw.opacity <= 0 || sw.radius >= sw.maxRadius) shockwaves.splice(i, 1);
       }
 
       // Draw Particles
+      const drag = decay(0.94);
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vx *= 0.94;
-        p.vy *= 0.94;
-        p.life -= p.decay;
+        p.x += p.vx * step;
+        p.y += p.vy * step;
+        p.vx *= drag;
+        p.vy *= drag;
+        p.life -= p.decay * step;
 
         if (p.life <= 0) {
           particles.splice(i, 1);
@@ -1891,8 +1908,8 @@
       // Draw Floating Points & Announcements
       for (let i = floatingTexts.length - 1; i >= 0; i--) {
         const ft = floatingTexts[i];
-        ft.y += ft.vy;
-        ft.life -= ft.decay;
+        ft.y += ft.vy * step;
+        ft.life -= ft.decay * step;
 
         if (ft.life <= 0) {
           floatingTexts.splice(i, 1);
