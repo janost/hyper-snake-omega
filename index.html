@@ -1308,27 +1308,33 @@
         // Left Stick: Axes 0 (X), Axes 1 (Y)
         // Right Stick: Axes 2 (X), Axes 3 (Y)
 
-        let targetDir = null;
+        // Every direction edge seen this frame, in order. A single slot let a
+        // stick edge overwrite a d-pad edge from the same poll; handleAction
+        // dedupes and queues, so dispatching several is safe.
+        const dirEdges = [];
 
         // D-Pad checks (rising edge)
-        if (isPressed(12) && !wasPressed(12)) targetDir = 'ArrowUp';
-        else if (isPressed(13) && !wasPressed(13)) targetDir = 'ArrowDown';
-        else if (isPressed(14) && !wasPressed(14)) targetDir = 'ArrowLeft';
-        else if (isPressed(15) && !wasPressed(15)) targetDir = 'ArrowRight';
+        if (isPressed(12) && !wasPressed(12)) dirEdges.push('ArrowUp');
+        if (isPressed(13) && !wasPressed(13)) dirEdges.push('ArrowDown');
+        if (isPressed(14) && !wasPressed(14)) dirEdges.push('ArrowLeft');
+        if (isPressed(15) && !wasPressed(15)) dirEdges.push('ArrowRight');
 
         // Left Thumbstick checks with deadzone latching
         const stickX = axes[0] !== undefined ? axes[0] : 0;
         const stickY = axes[1] !== undefined ? axes[1] : 0;
 
+        // Dominant axis wins, so a diagonal flick still reads as one turn.
+        let stickDir = null;
         if (Math.abs(stickX) > STICK_DEADZONE || Math.abs(stickY) > STICK_DEADZONE) {
           if (Math.abs(stickX) > Math.abs(stickY)) {
-            if (stickX > STICK_DEADZONE && prevPadAxes.x <= STICK_DEADZONE) targetDir = 'ArrowRight';
-            else if (stickX < -STICK_DEADZONE && prevPadAxes.x >= -STICK_DEADZONE) targetDir = 'ArrowLeft';
+            if (stickX > STICK_DEADZONE && prevPadAxes.x <= STICK_DEADZONE) stickDir = 'ArrowRight';
+            else if (stickX < -STICK_DEADZONE && prevPadAxes.x >= -STICK_DEADZONE) stickDir = 'ArrowLeft';
           } else {
-            if (stickY > STICK_DEADZONE && prevPadAxes.y <= STICK_DEADZONE) targetDir = 'ArrowDown';
-            else if (stickY < -STICK_DEADZONE && prevPadAxes.y >= -STICK_DEADZONE) targetDir = 'ArrowUp';
+            if (stickY > STICK_DEADZONE && prevPadAxes.y <= STICK_DEADZONE) stickDir = 'ArrowDown';
+            else if (stickY < -STICK_DEADZONE && prevPadAxes.y >= -STICK_DEADZONE) stickDir = 'ArrowUp';
           }
         }
+        if (stickDir) dirEdges.push(stickDir);
 
         prevPadAxes.x = stickX;
         prevPadAxes.y = stickY;
@@ -1341,8 +1347,8 @@
           }
         }
 
-        if (targetDir) {
-          handleAction(targetDir);
+        for (let d = 0; d < dirEdges.length; d++) {
+          handleAction(dirEdges[d]);
         }
 
         // Cache button state for edge detection
@@ -1390,7 +1396,11 @@
 
     let snake = [];
     let direction = { x: 0, y: 0 };
-    let nextDirection = { x: 0, y: 0 };
+    // Pending turns, oldest first; a logic tick consumes one. A queue rather
+    // than a single next-direction slot is what keeps both halves of a fast
+    // zig-zag when they land inside the same tick window (42-116ms).
+    const turnQueue = [];
+    const MAX_QUEUED_TURNS = 2;
     let foods = []; // Multi-food arsenal: normal, super, nuke, blackhole, laser
     let score = 0;
     let combo = 0;
@@ -1568,7 +1578,7 @@
         { x: 10, y: 14 }
       ];
       direction = { x: 0, y: -1 };
-      nextDirection = { x: 0, y: -1 };
+      turnQueue.length = 0;
       score = 0;
       combo = 0;
       feverEnergy = 0;
@@ -1733,8 +1743,9 @@
     function updateLogic() {
       if (!gameStarted || gameOver) return;
 
-      const turned = direction.x !== nextDirection.x || direction.y !== nextDirection.y;
-      direction = { ...nextDirection };
+      const pendingTurn = turnQueue.shift();
+      const turned = !!pendingTurn;
+      if (pendingTurn) direction = pendingTurn;
       run.straight = turned ? 0 : run.straight + 1;
       if (run.straight >= 20) unlockAchievement('straight_shooter');
 
@@ -2054,10 +2065,14 @@
         if (alive >= 300000) unlockAchievement('marathoner');
       }
 
-      // Update Game Logic Step
+      // Update Game Logic Step. lastTick advances by one whole interval rather
+      // than snapping to the frame time, so a late frame doesn't permanently
+      // shift the tick phase. If we fell more than a full tick behind (stall,
+      // backgrounded tab) resync instead of replaying the backlog.
       if (timestamp - lastTick >= currentTickRate) {
         updateLogic();
-        lastTick = timestamp;
+        lastTick += currentTickRate;
+        if (timestamp - lastTick >= currentTickRate) lastTick = timestamp;
       }
 
       // Combo Decay
@@ -2615,11 +2630,15 @@
 
       if (newDir) {
         if (!gameStarted && !gameOver) startGame();
-        if (newDir.x !== -direction.x || newDir.y !== -direction.y) {
-          if (newDir.x !== direction.x || newDir.y !== direction.y) {
-            playExtremeSound('turn');
-          }
-          nextDirection = newDir;
+        // Validate against the last direction already queued, not the one the
+        // snake is committed to right now. Testing the committed direction
+        // reads the second half of a fast turn as a 180 and throws it away.
+        const ref = turnQueue.length ? turnQueue[turnQueue.length - 1] : direction;
+        const reversal = newDir.x === -ref.x && newDir.y === -ref.y;
+        const same = newDir.x === ref.x && newDir.y === ref.y;
+        if (!reversal && !same && turnQueue.length < MAX_QUEUED_TURNS) {
+          turnQueue.push(newDir);
+          playExtremeSound('turn');
         }
       }
     }
