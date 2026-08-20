@@ -1,5 +1,5 @@
 # 🔥💥 HYPER-SNAKE OMEGA // APOCALYPSE SINGULARITY 💥🔥
-### ⚡ MAXIMUM UNCHAINED OVERKILL • 200BPM SYNTHWAVE • ZERO INHIBITIONS • FULL GAS ⚡
+### ⚡ MAXIMUM UNCHAINED OVERKILL • 150BPM SYNTHWAVE • ZERO INHIBITIONS • FULL GAS ⚡
 
 ```
    _____ _   _          _  ________    ____  __  __ ______ _____          
@@ -26,9 +26,9 @@ Built into a **single, self-contained `index.html` file** with **zero external J
 |---|---|---|---|
 | 🟢 | **Core Matter** | STANDARD | Basic fuel. Builds the combo streak. |
 | ⭐ | **Hyper Star** | ULTRA | High-multiplier score booster. Spawns explosive shock rings. |
-| ⚡ | **Laser Cross-Beam** | LETHAL | Grid-clearing dual laser beams fired across entire rows and columns. |
+| ⚡ | **Laser Cross-Beam** | LETHAL | Dual laser beams flash across the full row and column you ate on. |
 | ☢️ | **Thermonuclear Nuke** | APOCALYPTIC | Screen-wide whiteout flash, 4-corner high-voltage lightning strikes, extreme screen violence. |
-| 🌌 | **Black Hole Singularity** | COSMIC EXTINCTION | Gravity shockwave that warps the fabric of space-time and pulls remaining food directly into your mouth. |
+| 🌌 | **Black Hole Singularity** | COSMIC EXTINCTION | Biggest score payout on the board. Arcs a violet gravity tether to every other food still on the grid. |
 
 ---
 
@@ -42,7 +42,7 @@ Fill your Overdrive gauge to 100% to trigger **RAINBOW FEVER**:
 
 ---
 
-## 🏆 12 PERSISTENT ACHIEVEMENTS
+## 🏆 13 PERSISTENT ACHIEVEMENTS
 
 Tracked live in the cyber-sidebar and saved across sessions via `localStorage`:
 
@@ -55,9 +55,10 @@ Tracked live in the cyber-sidebar and saved across sessions via `localStorage`:
 - 🚀 **WARP FACTOR 9** — Reach 200%+ engine speed.
 - 🐉 **COSMIC OUROBOROS** — Grow to length 25.
 - 👑 **WORLD DEVOURER** — Grow to length 40.
+- 🎮 **CONTROLLER OVERLORD** — Plug in an Xbox or USB gamepad.
 - 💎 **HIGH ROLLER (1K)** — Score over 1,000 points.
 - ⭐ **IMMORTAL DEITY (3K)** — Score over 3,000 points.
-- 👻 **DEATH DEFIER** — Survive an entire Fever Mode cycle.
+- 👻 **DEATH DEFIER** — Ride out an entire Fever Mode cycle without dying.
 
 ---
 
@@ -78,6 +79,14 @@ No MP3s. No WAV files. No network lag.
   - **A / X / Start button**: Start game / Instant Respawn.
   - **Dual-Rumble Haptic Feedback**: Dynamic low/high-frequency motor vibration triggers on eating, nuke detonations, laser bursts, black holes, and deaths.
 - 📱 **Touch D-Pad**: Automatic on-screen touch overlay on phones & tablets.
+
+---
+
+## ⚠️ PHOTOSENSITIVITY & THE GFX TOGGLE
+
+This game strobes hard by default. The **GFX** button in the HUD switches between **ULTRA** and **LOW**; LOW drops the screen shake, the full-screen flashes, the warp grid, the ambient particle field and every looping strobe animation, and the choice is remembered in `localStorage`.
+
+If your OS is set to **reduce motion**, the game starts in LOW automatically and the flashing elements stay disabled even if you switch back to ULTRA.
 
 ---
 
