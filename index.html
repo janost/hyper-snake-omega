@@ -1126,6 +1126,7 @@
         shockwaves = [];
         lightningBolts = [];
         cosmicLasers = [];
+        gravityWells = [];
       }
       triggerScreamer(lowGraphics ? '⚡ LOW GFX MODE ⚡' : '🔥 ULTRA OVERKILL GFX 🔥', lowGraphics ? '#00ff66' : '#00ffff');
     });
@@ -1395,6 +1396,14 @@
     let floatingTexts = [];
     let lightningBolts = [];
     let cosmicLasers = [];
+    // Collapsing singularities left behind by a black hole pickup. Purely visual:
+    // they bend particles, not gameplay.
+    let gravityWells = [];
+    // Tuned so matter seeded at ~150px orbits just below escape velocity and
+    // spirals in over roughly a second.
+    const GRAVITY_G = 3400;
+    const GRAVITY_MIN_DIST = 24;
+    const GRAVITY_MAX_ACCEL = 6;
     // Timers from the death animation, cleared on reset so a restart mid-explosion
     // doesn't spray the old snake's debris across the new game.
     let deathTimers = [];
@@ -1452,6 +1461,7 @@
       floatingTexts = [];
       lightningBolts = [];
       cosmicLasers = [];
+      gravityWells = [];
       foods = [];
 
       spawnFood('normal');
@@ -1710,7 +1720,29 @@
           addFloatingText(`🌌 BLACK HOLE +${Math.round(basePoints * mult)}!`, hx, hy - 25, '#bd00ff', 2.2);
           triggerScreamer('COSMIC SINGULARITY!!', '#bd00ff');
 
-          // Pull all remaining foods into player mouth
+          if (!lowGraphics) {
+            gravityWells.push({ x: hx, y: hy, life: 1, spin: 0 });
+            // Seed the well with matter to swallow, thrown outward so it gets
+            // dragged back in rather than just falling straight to the middle.
+            for (let i = 0; i < 90; i++) {
+              const ang = Math.random() * Math.PI * 2;
+              const dist = 40 + Math.random() * 190;
+              const tangent = ang + Math.PI / 2;
+              const swirl = 2.2 + Math.random() * 2.4;
+              particles.push({
+                x: hx + Math.cos(ang) * dist,
+                y: hy + Math.sin(ang) * dist,
+                vx: Math.cos(tangent) * swirl,
+                vy: Math.sin(tangent) * swirl,
+                life: 1.0,
+                decay: 0.008 + Math.random() * 0.008,
+                color: i % 3 === 0 ? '#ffffff' : '#bd00ff',
+                size: Math.random() * 4 + 2
+              });
+            }
+          }
+
+          // Tether every remaining core to the singularity
           foods.forEach(f => {
             triggerLightning(hx, hy, f.x * GRID_SIZE + GRID_SIZE/2, f.y * GRID_SIZE + GRID_SIZE/2, '#bd00ff');
           });
@@ -2192,6 +2224,37 @@
         if (sw.opacity <= 0 || sw.radius >= sw.maxRadius) shockwaves.splice(i, 1);
       }
 
+      // Draw Gravity Wells: a dark throat with a couple of accretion arcs
+      // whipping round it. Drawn under the particles so the swallowed matter
+      // passes in front.
+      for (let i = gravityWells.length - 1; i >= 0; i--) {
+        const well = gravityWells[i];
+        const age = 1 - well.life;
+        const radius = 16 + age * 46;
+
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, well.life * 1.6);
+        ctx.fillStyle = '#04000a';
+        ctx.beginPath();
+        ctx.arc(well.x, well.y, radius * 0.6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.strokeStyle = '#bd00ff';
+        ctx.lineWidth = 5 * well.life;
+        for (let k = 0; k < 3; k++) {
+          const from = well.spin * (1 + k * 0.35) + k * 2.1;
+          ctx.beginPath();
+          ctx.arc(well.x, well.y, radius * (0.78 + k * 0.2), from, from + 2.3);
+          ctx.stroke();
+        }
+        ctx.restore();
+
+        well.spin += 0.22 * step;
+        well.life -= 0.011 * step;
+        if (well.life <= 0) gravityWells.splice(i, 1);
+      }
+
       // Draw Particles. One save/restore for the whole pass, additive blending,
       // no per-particle shadow blur.
       const drag = decay(0.94);
@@ -2199,6 +2262,20 @@
       ctx.globalCompositeOperation = 'lighter';
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
+
+        // Inverse-square attraction along the unit vector to each well. Distance
+        // is floored and the acceleration capped, so a particle crossing the
+        // centre gets slung around rather than launched to infinity.
+        for (let w = 0; w < gravityWells.length; w++) {
+          const well = gravityWells[w];
+          const dx = well.x - p.x;
+          const dy = well.y - p.y;
+          const dist = Math.max(Math.hypot(dx, dy), GRAVITY_MIN_DIST);
+          const accel = Math.min(well.life * GRAVITY_G / (dist * dist), GRAVITY_MAX_ACCEL) * step;
+          p.vx += (dx / dist) * accel;
+          p.vy += (dy / dist) * accel;
+        }
+
         p.x += p.vx * step;
         p.y += p.vy * step;
         p.vx *= drag;
