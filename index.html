@@ -597,6 +597,39 @@
 
   <script>
     /* =========================================================================
+       0. PERSISTENCE HELPERS
+       ========================================================================= */
+    // localStorage throws in private mode / with cookies disabled, and can hold
+    // garbage written by an older build. Neither should take the whole game down
+    // before the canvas ever draws.
+    function storageGet(key) {
+      try {
+        return localStorage.getItem(key);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function storageSet(key, value) {
+      try {
+        localStorage.setItem(key, value);
+      } catch (e) {
+        /* not persistable in this context; the session still plays fine */
+      }
+    }
+
+    function storageGetJSON(key, fallback) {
+      const raw = storageGet(key);
+      if (raw === null) return fallback;
+      try {
+        const parsed = JSON.parse(raw);
+        return (parsed && typeof parsed === 'object') ? parsed : fallback;
+      } catch (e) {
+        return fallback;
+      }
+    }
+
+    /* =========================================================================
        1. 200BPM PROCEDURAL DRUM & SYNTHWAVE / DUBSTEP AUDIO ENGINE (Web Audio)
        ========================================================================= */
     const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -845,7 +878,7 @@
       { id: 'ghost_slayer', icon: '👻', title: 'DEATH DEFIER', desc: 'Survive in Fever mode for 10 seconds' }
     ];
 
-    let unlockedAchieves = JSON.parse(localStorage.getItem('hyper_snake_achieves') || '{}');
+    let unlockedAchieves = storageGetJSON('hyper_snake_achieves', {});
 
     function renderAchievementsSidebar() {
       const listEl = document.getElementById('achieve-list');
@@ -871,7 +904,7 @@
     function unlockAchievement(id) {
       if (unlockedAchieves[id]) return;
       unlockedAchieves[id] = true;
-      localStorage.setItem('hyper_snake_achieves', JSON.stringify(unlockedAchieves));
+      storageSet('hyper_snake_achieves', JSON.stringify(unlockedAchieves));
       renderAchievementsSidebar();
       playExtremeSound('achieve');
 
@@ -929,7 +962,7 @@
     const gfxToggleBtn = document.getElementById('gfx-toggle');
 
     // Graphics Quality Setting (High / Low)
-    let lowGraphics = localStorage.getItem('hyper_snake_low_gfx') === 'true';
+    let lowGraphics = storageGet('hyper_snake_low_gfx') === 'true';
 
     // Applies the current quality setting to the DOM and persists it. Runs during
     // init, before the FX buffers exist, so it must not touch them.
@@ -943,7 +976,7 @@
         gfxToggleBtn.textContent = 'ULTRA';
         gfxToggleBtn.classList.remove('low');
       }
-      localStorage.setItem('hyper_snake_low_gfx', lowGraphics);
+      storageSet('hyper_snake_low_gfx', lowGraphics);
     }
 
     gfxToggleBtn.addEventListener('click', () => {
@@ -1097,7 +1130,7 @@
     let combo = 0;
     let lastEatTimestamp = 0;
     const COMBO_WINDOW = 3500;
-    let highScore = localStorage.getItem('hyper_snake_omega_hi') || 0;
+    let highScore = Number(storageGet('hyper_snake_omega_hi')) || 0;
     let gameOver = false;
     let gameStarted = false;
 
@@ -1435,7 +1468,7 @@
         if (score > highScore) {
           highScore = score;
           bestEl.textContent = highScore;
-          localStorage.setItem('hyper_snake_omega_hi', highScore);
+          storageSet('hyper_snake_omega_hi', highScore);
         }
 
         // Keep 3 to 4 foods on screen
