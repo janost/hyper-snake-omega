@@ -834,6 +834,15 @@
     const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');
 
+    // DOM References
+    const scoreEl = document.getElementById('score');
+    const comboEl = document.getElementById('combo-val');
+    const lenEl = document.getElementById('len-val');
+    const speedEl = document.getElementById('speed-val');
+    const bestEl = document.getElementById('best-val');
+    const padEl = document.getElementById('pad-val');
+    const comboCell = document.getElementById('combo-cell');
+
     /* =========================================================================
        GAMEPAD HAPTIC RUMBLE (Dual-Rumble Motors for Xbox / DualShock / Standard)
        ========================================================================= */
