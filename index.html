@@ -1415,6 +1415,9 @@
     let cameraRotate = 0;
     let flashIntensity = 0;
     let rainbowHue = 0;
+    // Position of the swallow travelling head to tail, as a segment index.
+    // Negative means nothing in flight.
+    let eatPulse = -1;
     let lastTick = 0;
     let lastFrame = 0;
     const FRAME_MS = 1000 / 60;   // every FX constant below was tuned at 60fps
@@ -1432,6 +1435,7 @@
 
       screenShake = 0;
       flashIntensity = 0;
+      eatPulse = -1;
       cameraZoom = 1;
       cameraRotate = 0;
       lastTick = performance.now();
@@ -1664,6 +1668,7 @@
       if (eatenIdx !== -1) {
         const eaten = foods[eatenIdx];
         foods.splice(eatenIdx, 1);
+        eatPulse = 0;
 
         unlockAchievement('first_blood');
 
@@ -1959,6 +1964,13 @@
         writeText(feverTxt, 'feverTxt', feverEnergy > 0 ? `ENERGY: ${Math.round(feverEnergy)}%` : `⚡ HYPER-DRIVE IDLE ⚡`);
       }
 
+      // Walk the swallow down the body. Overshooting the tail by a few segments
+      // lets the wave finish leaving rather than vanishing on the last one.
+      if (eatPulse >= 0) {
+        eatPulse += 0.9 * step;
+        if (eatPulse > snake.length + 3) eatPulse = -1;
+      }
+
       // Smooth Camera Decay
       const cameraPull = 1 - decay(0.92);
       cameraZoom += (1 - cameraZoom) * cameraPull;
@@ -2108,6 +2120,20 @@
           ctx.beginPath();
           ctx.arc(fx, fy, r + 6 + pulse, 0, Math.PI * 2);
           ctx.stroke();
+
+          // Satellites, on the dangerous matter only, so a nuke reads differently
+          // from a plain core at a glance rather than by colour alone.
+          if (f.type !== 'normal') {
+            const orbit = r + 13 + pulse;
+            const spin = timestamp * 0.0045 + f.phase;
+            ctx.fillStyle = col;
+            for (let k = 0; k < 2; k++) {
+              const a = spin + k * Math.PI;
+              ctx.beginPath();
+              ctx.arc(fx + Math.cos(a) * orbit, fy + Math.sin(a) * orbit, 2.6, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
         }
 
         // Pulsing Core
@@ -2132,12 +2158,20 @@
       // ctx.shadowBlur on every segment, which is one full filter pass each: a
       // 40-long snake cost 40 of them per frame, and it only gets worse as you
       // grow. It's now a single additive sprite pass over the same segments.
+      // How much the swallow is bulging this segment, 0 to 1.
+      const swellAt = (i) => {
+        if (eatPulse < 0) return 0;
+        const d = Math.abs(i - eatPulse);
+        return d < 2.5 ? 1 - d / 2.5 : 0;
+      };
+
       ctx.save();
       if (!lowGraphics) {
         ctx.globalCompositeOperation = 'lighter';
         snake.forEach((seg, i) => {
-          const r = GRID_SIZE * (i === 0 ? 1.5 : 1.1);
-          ctx.globalAlpha = i === 0 ? 0.9 : 0.55;
+          const swell = swellAt(i);
+          const r = GRID_SIZE * (i === 0 ? 1.5 : 1.1) * (1 + swell * 0.55);
+          ctx.globalAlpha = Math.min(1, (i === 0 ? 0.9 : 0.55) + swell * 0.45);
           ctx.drawImage(getGlowSprite(segmentGlowColor(i)),
             seg.x * GRID_SIZE + GRID_SIZE / 2 - r, seg.y * GRID_SIZE + GRID_SIZE / 2 - r, r * 2, r * 2);
         });
@@ -2149,10 +2183,12 @@
         const px = seg.x * GRID_SIZE;
         const py = seg.y * GRID_SIZE;
         const segColor = segmentColor(i);
+        const bulge = swellAt(i) * 3;
 
         ctx.fillStyle = i === 0 ? '#ffffff' : segColor;
         ctx.beginPath();
-        ctx.roundRect(px + 2, py + 2, GRID_SIZE - 4, GRID_SIZE - 4, 9);
+        ctx.roundRect(px + 2 - bulge, py + 2 - bulge,
+          GRID_SIZE - 4 + bulge * 2, GRID_SIZE - 4 + bulge * 2, 9 + bulge);
         ctx.fill();
 
         // Inner core
