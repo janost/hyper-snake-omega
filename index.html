@@ -217,7 +217,7 @@
     /* Top HUD Row */
     .hud-grid {
       display: grid;
-      grid-template-columns: repeat(6, 1fr);
+      grid-template-columns: repeat(7, 1fr);
       gap: 0.5rem;
       width: 560px;
     }
@@ -269,6 +269,64 @@
       color: #666;
       transition: all 0.3s ease;
       letter-spacing: 1px;
+    }
+
+    .gfx-btn {
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(0, 255, 255, 0.5);
+      color: var(--neon-cyan);
+      font-family: 'Orbitron', monospace;
+      font-size: 0.75rem;
+      font-weight: 900;
+      border-radius: 6px;
+      padding: 0.25rem 0.4rem;
+      margin-top: 0.2rem;
+      letter-spacing: 1px;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+    }
+    .gfx-btn:hover {
+      background: var(--neon-cyan);
+      color: #000;
+      box-shadow: 0 0 10px var(--neon-cyan);
+    }
+    .gfx-btn.low {
+      border-color: var(--neon-lime);
+      color: var(--neon-lime);
+    }
+    .gfx-btn.low:hover {
+      background: var(--neon-lime);
+      color: #000;
+      box-shadow: 0 0 10px var(--neon-lime);
+    }
+
+    /* Low graphics overrides for CSS animations / heavy elements */
+    body.low-gfx .space-warp-grid {
+      display: none !important;
+    }
+    body.low-gfx #bg-fx-canvas {
+      display: none !important;
+    }
+    body.low-gfx .title-banner {
+      animation: none !important;
+      filter: none !important;
+    }
+    body.low-gfx #rig-container {
+      animation: none !important;
+      background: #1a0033 !important;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.3) !important;
+    }
+    body.low-gfx .vignette-crt {
+      display: none !important;
+    }
+    body.low-gfx .sidebar {
+      backdrop-filter: none !important;
+      box-shadow: none !important;
+    }
+    body.low-gfx .hud-cell {
+      backdrop-filter: none !important;
+      box-shadow: none !important;
     }
 
     .gamepad-tag.connected {
@@ -507,6 +565,10 @@
         <div class="hud-cell">
           <span class="hud-lbl">PAD</span>
           <span id="pad-val" class="hud-val gamepad-tag">OFF</span>
+        </div>
+        <div class="hud-cell">
+          <span class="hud-lbl">GFX</span>
+          <button id="gfx-toggle" class="gfx-btn" title="Toggle Graphics Quality (High / Low)">ULTRA</button>
         </div>
       </div>
 
@@ -842,6 +904,35 @@
     const bestEl = document.getElementById('best-val');
     const padEl = document.getElementById('pad-val');
     const comboCell = document.getElementById('combo-cell');
+    const gfxToggleBtn = document.getElementById('gfx-toggle');
+
+    // Graphics Quality Setting (High / Low)
+    let lowGraphics = localStorage.getItem('hyper_snake_low_gfx') === 'true';
+
+    function updateGraphicsMode() {
+      if (lowGraphics) {
+        document.body.classList.add('low-gfx');
+        gfxToggleBtn.textContent = 'LOW';
+        gfxToggleBtn.classList.add('low');
+        particles = [];
+        shockwaves = [];
+        lightningBolts = [];
+        cosmicLasers = [];
+      } else {
+        document.body.classList.remove('low-gfx');
+        gfxToggleBtn.textContent = 'ULTRA';
+        gfxToggleBtn.classList.remove('low');
+      }
+      localStorage.setItem('hyper_snake_low_gfx', lowGraphics);
+    }
+
+    gfxToggleBtn.addEventListener('click', () => {
+      lowGraphics = !lowGraphics;
+      updateGraphicsMode();
+      triggerScreamer(lowGraphics ? '⚡ LOW GFX MODE ⚡' : '🔥 ULTRA OVERKILL GFX 🔥', lowGraphics ? '#00ff66' : '#00ffff');
+    });
+
+    updateGraphicsMode();
 
     /* =========================================================================
        GAMEPAD HAPTIC RUMBLE (Dual-Rumble Motors for Xbox / DualShock / Standard)
@@ -1076,20 +1167,22 @@
       });
 
       // Spawn portal entry particles
-      const px = pos.x * GRID_SIZE + GRID_SIZE / 2;
-      const py = pos.y * GRID_SIZE + GRID_SIZE / 2;
-      for (let i = 0; i < 20; i++) {
-        const ang = Math.random() * Math.PI * 2;
-        const spd = Math.random() * 5 + 2;
-        particles.push({
-          x: px, y: py,
-          vx: Math.cos(ang) * spd,
-          vy: Math.sin(ang) * spd,
-          life: 1.0,
-          decay: 0.03,
-          color: getFoodColor(type),
-          size: Math.random() * 5 + 2
-        });
+      if (!lowGraphics) {
+        const px = pos.x * GRID_SIZE + GRID_SIZE / 2;
+        const py = pos.y * GRID_SIZE + GRID_SIZE / 2;
+        for (let i = 0; i < 20; i++) {
+          const ang = Math.random() * Math.PI * 2;
+          const spd = Math.random() * 5 + 2;
+          particles.push({
+            x: px, y: py,
+            vx: Math.cos(ang) * spd,
+            vy: Math.sin(ang) * spd,
+            life: 1.0,
+            decay: 0.03,
+            color: getFoodColor(type),
+            size: Math.random() * 5 + 2
+          });
+        }
       }
     }
 
@@ -1111,6 +1204,7 @@
     }
 
     function triggerLightning(x1, y1, x2, y2, color = '#00ffff') {
+      if (lowGraphics) return;
       const segments = [];
       let cx = x1, cy = y1;
       const steps = 7;
@@ -1127,6 +1221,7 @@
     }
 
     function spawnHyperExplosion(x, y, count, colors, speedMultiplier = 1) {
+      if (lowGraphics) return;
       for (let i = 0; i < count; i++) {
         const ang = Math.random() * Math.PI * 2;
         const spd = (Math.random() * 12 + 3) * speedMultiplier;
@@ -1143,6 +1238,7 @@
     }
 
     function addShockwave(x, y, color, maxRadius = 180) {
+      if (lowGraphics) return;
       shockwaves.push({ x, y, radius: 10, maxRadius, opacity: 1, color });
     }
 
@@ -1354,10 +1450,12 @@
         setTimeout(() => {
           const sx = seg.x * GRID_SIZE + GRID_SIZE / 2;
           const sy = seg.y * GRID_SIZE + GRID_SIZE / 2;
-          spawnHyperExplosion(sx, sy, 40, ['#ff0033', '#ffee00', '#ff00ff', '#fff', '#ff5500'], 1.6);
-          addShockwave(sx, sy, '#ff0033', 150);
-          triggerLightning(sx, sy, Math.random() * canvas.width, Math.random() * canvas.height, '#ff0033');
-          screenShake = Math.max(screenShake, 20);
+          if (!lowGraphics) {
+            spawnHyperExplosion(sx, sy, 40, ['#ff0033', '#ffee00', '#ff00ff', '#fff', '#ff5500'], 1.6);
+            addShockwave(sx, sy, '#ff0033', 150);
+            triggerLightning(sx, sy, Math.random() * canvas.width, Math.random() * canvas.height, '#ff0033');
+            screenShake = Math.max(screenShake, 20);
+          }
         }, idx * 25);
       });
     }
@@ -1373,22 +1471,24 @@
       rainbowHue = (rainbowHue + 3) % 360;
 
       // Render Ambient Background Galaxy Particles
-      bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
-      bgParticles.forEach(bp => {
-        bp.x += bp.vx * (feverActive ? 4 : 1);
-        bp.y += bp.vy * (feverActive ? 4 : 1);
-        if (bp.x < 0) bp.x = bgCanvas.width;
-        if (bp.x > bgCanvas.width) bp.x = 0;
-        if (bp.y < 0) bp.y = bgCanvas.height;
-        if (bp.y > bgCanvas.height) bp.y = 0;
+      if (!lowGraphics) {
+        bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+        bgParticles.forEach(bp => {
+          bp.x += bp.vx * (feverActive ? 4 : 1);
+          bp.y += bp.vy * (feverActive ? 4 : 1);
+          if (bp.x < 0) bp.x = bgCanvas.width;
+          if (bp.x > bgCanvas.width) bp.x = 0;
+          if (bp.y < 0) bp.y = bgCanvas.height;
+          if (bp.y > bgCanvas.height) bp.y = 0;
 
-        bgCtx.fillStyle = `hsl(${bp.hue}, 100%, 65%)`;
-        bgCtx.shadowBlur = 15;
-        bgCtx.shadowColor = `hsl(${bp.hue}, 100%, 50%)`;
-        bgCtx.beginPath();
-        bgCtx.arc(bp.x, bp.y, bp.size, 0, Math.PI * 2);
-        bgCtx.fill();
-      });
+          bgCtx.fillStyle = `hsl(${bp.hue}, 100%, 65%)`;
+          bgCtx.shadowBlur = 15;
+          bgCtx.shadowColor = `hsl(${bp.hue}, 100%, 50%)`;
+          bgCtx.beginPath();
+          bgCtx.arc(bp.x, bp.y, bp.size, 0, Math.PI * 2);
+          bgCtx.fill();
+        });
+      }
 
       // Calculate Speed Curve
       const speedScale = Math.min(3.0, 1 + (score / 400) * 0.35 + (combo * 0.08) + (feverActive ? 0.6 : 0));
@@ -1432,21 +1532,36 @@
       cameraRotate += (0 - cameraRotate) * 0.08;
 
       let shakeX = 0, shakeY = 0;
-      if (screenShake > 0) {
+      if (!lowGraphics && screenShake > 0) {
         shakeX = (Math.random() - 0.5) * screenShake * 2.5;
         shakeY = (Math.random() - 0.5) * screenShake * 2.5;
+      }
+      if (screenShake > 0) {
         screenShake *= 0.88;
         if (screenShake < 0.2) screenShake = 0;
       }
 
-      rig.style.transform = `translate(${shakeX}px, ${shakeY}px) scale(${cameraZoom}) rotate(${cameraRotate}rad)`;
+      if (!lowGraphics) {
+        rig.style.transform = `translate(${shakeX}px, ${shakeY}px) scale(${cameraZoom}) rotate(${cameraRotate}rad)`;
+      } else {
+        rig.style.transform = 'none';
+      }
 
       // Flashes & strobe overlays
-      if (flashIntensity > 0) {
+      if (!lowGraphics && flashIntensity > 0) {
         superFlash.style.opacity = flashIntensity;
+      } else {
+        superFlash.style.opacity = 0;
+      }
+      if (flashIntensity > 0) {
         flashIntensity *= 0.82;
       }
-      apocOverlay.style.opacity = feverActive ? (Math.sin(timestamp * 0.02) * 0.25 + 0.35) : (combo > 5 ? 0.2 : 0);
+
+      if (!lowGraphics) {
+        apocOverlay.style.opacity = feverActive ? (Math.sin(timestamp * 0.02) * 0.25 + 0.35) : (combo > 5 ? 0.2 : 0);
+      } else {
+        apocOverlay.style.opacity = 0;
+      }
 
       // MAIN CANVAS DRAWING
       ctx.save();
@@ -1454,20 +1569,33 @@
       ctx.fillStyle = feverActive ? '#050010' : '#010006';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Hyper Rave Grid Lines
-      ctx.lineWidth = 1;
-      for (let x = 0; x <= canvas.width; x += GRID_SIZE) {
-        const p = Math.sin((timestamp * 0.004) + (x * 0.03)) * 0.12 + 0.12;
-        ctx.strokeStyle = feverActive ? `hsla(${(rainbowHue + x) % 360}, 100%, 60%, ${p * 2})` : `rgba(0, 255, 255, ${p})`;
+      // Grid Lines
+      if (!lowGraphics) {
+        ctx.lineWidth = 1;
+        for (let x = 0; x <= canvas.width; x += GRID_SIZE) {
+          const p = Math.sin((timestamp * 0.004) + (x * 0.03)) * 0.12 + 0.12;
+          ctx.strokeStyle = feverActive ? `hsla(${(rainbowHue + x) % 360}, 100%, 60%, ${p * 2})` : `rgba(0, 255, 255, ${p})`;
+          ctx.beginPath();
+          ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
+          ctx.stroke();
+        }
+        for (let y = 0; y <= canvas.height; y += GRID_SIZE) {
+          const p = Math.cos((timestamp * 0.004) + (y * 0.03)) * 0.12 + 0.12;
+          ctx.strokeStyle = feverActive ? `hsla(${(rainbowHue + y) % 360}, 100%, 60%, ${p * 2})` : `rgba(255, 0, 128, ${p})`;
+          ctx.beginPath();
+          ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
+          ctx.stroke();
+        }
+      } else {
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.08)';
         ctx.beginPath();
-        ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
-        ctx.stroke();
-      }
-      for (let y = 0; y <= canvas.height; y += GRID_SIZE) {
-        const p = Math.cos((timestamp * 0.004) + (y * 0.03)) * 0.12 + 0.12;
-        ctx.strokeStyle = feverActive ? `hsla(${(rainbowHue + y) % 360}, 100%, 60%, ${p * 2})` : `rgba(255, 0, 128, ${p})`;
-        ctx.beginPath();
-        ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
+        for (let x = 0; x <= canvas.width; x += GRID_SIZE) {
+          ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
+        }
+        for (let y = 0; y <= canvas.height; y += GRID_SIZE) {
+          ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
+        }
         ctx.stroke();
       }
 
@@ -1492,7 +1620,7 @@
       }
 
       // Snake Body Trail Sparkles
-      if (gameStarted && !gameOver) {
+      if (!lowGraphics && gameStarted && !gameOver) {
         snake.forEach((seg, idx) => {
           if (Math.random() < 0.4) {
             particles.push({
@@ -1513,20 +1641,22 @@
       foods.forEach(f => {
         const fx = f.x * GRID_SIZE + GRID_SIZE / 2;
         const fy = f.y * GRID_SIZE + GRID_SIZE / 2;
-        const pulse = Math.sin((timestamp * 0.012) + f.phase) * 5;
+        const pulse = lowGraphics ? 0 : Math.sin((timestamp * 0.012) + f.phase) * 5;
         const r = Math.max(4, GRID_SIZE / 2 - 2 + pulse);
         const col = getFoodColor(f.type);
 
         ctx.save();
-        ctx.shadowBlur = 35 + pulse * 3;
-        ctx.shadowColor = col;
+        if (!lowGraphics) {
+          ctx.shadowBlur = 35 + pulse * 3;
+          ctx.shadowColor = col;
 
-        // Rotating Energy Ring
-        ctx.strokeStyle = col;
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(fx, fy, r + 6 + pulse, 0, Math.PI * 2);
-        ctx.stroke();
+          // Rotating Energy Ring
+          ctx.strokeStyle = col;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(fx, fy, r + 6 + pulse, 0, Math.PI * 2);
+          ctx.stroke();
+        }
 
         // Pulsing Core
         ctx.fillStyle = col;
@@ -1561,8 +1691,10 @@
         const segColor = feverActive ? `hsl(${(rainbowHue + i * 25) % 360}, 100%, 65%)` : `hsl(${segHue}, 100%, 60%)`;
 
         ctx.save();
-        ctx.shadowBlur = i === 0 ? 40 : 20;
-        ctx.shadowColor = segColor;
+        if (!lowGraphics) {
+          ctx.shadowBlur = i === 0 ? 40 : 20;
+          ctx.shadowColor = segColor;
+        }
 
         ctx.fillStyle = i === 0 ? '#ffffff' : segColor;
         ctx.beginPath();
@@ -1578,8 +1710,10 @@
         // Head Eyes
         if (i === 0) {
           ctx.fillStyle = '#ff0033';
-          ctx.shadowColor = '#ff0033';
-          ctx.shadowBlur = 20;
+          if (!lowGraphics) {
+            ctx.shadowColor = '#ff0033';
+            ctx.shadowBlur = 20;
+          }
           let e1 = { x: px + 8, y: py + 8 };
           let e2 = { x: px + GRID_SIZE - 8, y: py + 8 };
           if (direction.x === 1) {
@@ -1680,8 +1814,10 @@
         ctx.globalAlpha = ft.life;
         ctx.font = `900 ${Math.round(24 * ft.scale)}px 'Black Ops One', sans-serif`;
         ctx.fillStyle = ft.color;
-        ctx.shadowBlur = 25;
-        ctx.shadowColor = ft.color;
+        if (!lowGraphics) {
+          ctx.shadowBlur = 25;
+          ctx.shadowColor = ft.color;
+        }
         ctx.textAlign = 'center';
         ctx.fillText(ft.text, ft.x, ft.y);
         ctx.restore();
@@ -1695,14 +1831,18 @@
 
         ctx.font = '900 36px "Black Ops One", sans-serif';
         ctx.fillStyle = '#00ffff';
-        ctx.shadowBlur = 40;
-        ctx.shadowColor = '#00ffff';
+        if (!lowGraphics) {
+          ctx.shadowBlur = 40;
+          ctx.shadowColor = '#00ffff';
+        }
         ctx.textAlign = 'center';
         ctx.fillText('⚡ ENGAGE APOCALYPSE ⚡', canvas.width / 2, canvas.height / 2 - 25);
 
         ctx.font = '700 16px "Orbitron", sans-serif';
         ctx.fillStyle = '#ff0055';
-        ctx.shadowColor = '#ff0055';
+        if (!lowGraphics) {
+          ctx.shadowColor = '#ff0055';
+        }
         ctx.fillText('PRESS ARROW / WASD / [A] BUTTON TO IGNITE', canvas.width / 2, canvas.height / 2 + 25);
         ctx.restore();
       } else if (gameOver) {
@@ -1712,20 +1852,26 @@
 
         ctx.font = '900 48px "Black Ops One", sans-serif';
         ctx.fillStyle = '#ff0033';
-        ctx.shadowBlur = 50;
-        ctx.shadowColor = '#ff0033';
+        if (!lowGraphics) {
+          ctx.shadowBlur = 50;
+          ctx.shadowColor = '#ff0033';
+        }
         ctx.textAlign = 'center';
         ctx.fillText('TOTAL EXTINCTION', canvas.width / 2, canvas.height / 2 - 40);
 
         ctx.font = '900 26px "Orbitron", sans-serif';
         ctx.fillStyle = '#ffee00';
-        ctx.shadowBlur = 20;
-        ctx.shadowColor = '#ffee00';
+        if (!lowGraphics) {
+          ctx.shadowBlur = 20;
+          ctx.shadowColor = '#ffee00';
+        }
         ctx.fillText(`FINAL SCORE: ${score}`, canvas.width / 2, canvas.height / 2 + 10);
 
         ctx.font = '700 15px "Orbitron", sans-serif';
         ctx.fillStyle = '#00ffff';
-        ctx.shadowColor = '#00ffff';
+        if (!lowGraphics) {
+          ctx.shadowColor = '#00ffff';
+        }
         ctx.fillText('PRESS SPACE / ENTER / [A] TO RESPAWN', canvas.width / 2, canvas.height / 2 + 55);
         ctx.restore();
       }
