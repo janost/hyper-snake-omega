@@ -42,9 +42,9 @@ Fill your Overdrive gauge to 100% to trigger **RAINBOW FEVER**:
 
 ---
 
-## 🏆 13 PERSISTENT ACHIEVEMENTS
+## 🏆 25 PERSISTENT ACHIEVEMENTS
 
-Tracked live in the cyber-sidebar and saved across sessions via `localStorage`:
+Tracked live in the cyber-sidebar and saved across sessions via `localStorage`. The unlocks themselves are permanent; the ones marked **per run** have to be earned inside a single life, and their counters reset the moment you respawn.
 
 - 🩸 **FIRST BLOOD** — Devour your first cyber-matter core.
 - ⚡ **HYPER VELOCITY** — Reach a 5x combo streak.
@@ -59,6 +59,18 @@ Tracked live in the cyber-sidebar and saved across sessions via `localStorage`:
 - 💎 **HIGH ROLLER (1K)** — Score over 1,000 points.
 - ⭐ **IMMORTAL DEITY (3K)** — Score over 3,000 points.
 - 👻 **DEATH DEFIER** — Ride out an entire Fever Mode cycle without dying.
+- 💫 **SINGULARITY STREAK** — Reach a 20x combo streak.
+- 🌟 **GALACTIC TYCOON (10K)** — Score over 10,000 points.
+- 🐍 **ENDLESS LEVIATHAN** — Grow to length 60.
+- 🏎️ **TERMINAL VELOCITY** — Pin the engine at its top speed.
+- ☢️ **FALLOUT ENTHUSIAST** — Detonate 3 nukes, **per run**.
+- 🕳️ **EVENT HORIZON** — Absorb 3 singularities, **per run**.
+- 🔫 **BEAM ARCHITECT** — Fire 5 laser cross-beams, **per run**.
+- 🍽️ **BALANCED DIET** — Eat all five matter types, **per run**.
+- 🔁 **PERPETUAL OVERDRIVE** — Trigger Fever 3 times, **per run**.
+- 🌀 **PHASE SHIFTER** — Warp through the grid edge during Fever.
+- 🧊 **COLD BLOODED** — Score 1,000 before ever triggering Fever, **per run**.
+- ⏳ **LONG HAUL** — Survive a single run for 2 minutes.
 
 ---
 
