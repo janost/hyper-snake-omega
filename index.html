@@ -328,6 +328,44 @@
       backdrop-filter: none !important;
       box-shadow: none !important;
     }
+    body.low-gfx .hud-cell.danger-glow,
+    body.low-gfx .achieve-card.unlocked,
+    body.low-gfx .gamepad-tag.connected {
+      animation: none !important;
+    }
+
+    /* Photosensitivity guard. The title flicker (4Hz), combo alert (5Hz) and the
+       full-screen white flash all sit above the 3Hz seizure threshold, so they
+       come off entirely when the OS asks for reduced motion. This is independent
+       of the GFX toggle: it holds even if the player switches back to ULTRA. */
+    @media (prefers-reduced-motion: reduce) {
+      .space-warp-grid,
+      #bg-fx-canvas,
+      .vignette-crt,
+      #super-flash,
+      #apocalypse-overlay {
+        display: none !important;
+      }
+      .title-banner,
+      #rig-container,
+      .hud-cell.danger-glow,
+      .achieve-card.unlocked,
+      .gamepad-tag.connected {
+        animation: none !important;
+      }
+      .title-banner {
+        filter: none !important;
+      }
+      #rig-container {
+        background: #1a0033 !important;
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.3) !important;
+      }
+      #screamer-text,
+      #achievement-popup,
+      .achieve-card {
+        transition: none !important;
+      }
+    }
 
     .gamepad-tag.connected {
       color: var(--neon-lime);
@@ -961,11 +999,18 @@
     const comboCell = document.getElementById('combo-cell');
     const gfxToggleBtn = document.getElementById('gfx-toggle');
 
-    // Graphics Quality Setting (High / Low)
-    let lowGraphics = storageGet('hyper_snake_low_gfx') === 'true';
+    // Graphics Quality Setting (High / Low). With no stored preference we take
+    // the cue from the OS: prefers-reduced-motion means start in LOW, which is
+    // the mode with no strobes, flashes or screen shake.
+    const prefersReducedMotion = window.matchMedia
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const storedGfx = storageGet('hyper_snake_low_gfx');
+    let lowGraphics = storedGfx === null ? !!prefersReducedMotion : storedGfx === 'true';
 
-    // Applies the current quality setting to the DOM and persists it. Runs during
-    // init, before the FX buffers exist, so it must not touch them.
+    // Applies the current quality setting to the DOM. Runs during init, before the
+    // FX buffers exist, so it must not touch them. It deliberately does not persist:
+    // only an explicit toggle writes to storage, so "never chosen" stays
+    // distinguishable from "chose ULTRA" and the reduced-motion default keeps working.
     function updateGraphicsMode() {
       if (lowGraphics) {
         document.body.classList.add('low-gfx');
@@ -976,11 +1021,11 @@
         gfxToggleBtn.textContent = 'ULTRA';
         gfxToggleBtn.classList.remove('low');
       }
-      storageSet('hyper_snake_low_gfx', lowGraphics);
     }
 
     gfxToggleBtn.addEventListener('click', () => {
       lowGraphics = !lowGraphics;
+      storageSet('hyper_snake_low_gfx', lowGraphics);
       updateGraphicsMode();
       if (lowGraphics) {
         // Drop FX already in flight so they don't linger on screen.
