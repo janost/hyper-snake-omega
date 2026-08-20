@@ -1465,8 +1465,9 @@
           addShockwave(hx, hy, '#00ffff', 220);
           addFloatingText(`⚡ LASER BURST +${Math.round(basePoints * mult)}!`, hx, hy - 20, '#00ffff', 1.8);
 
-          // Fire cross laser beams along whole row & col
-          cosmicLasers.push({ x: hx, y: hy, life: 1.0, color: '#00ffff' });
+          // Fire cross laser beams along whole row & col. Full-canvas beams with
+          // shadowBlur are the single most expensive effect here, so LOW skips them.
+          if (!lowGraphics) cosmicLasers.push({ x: hx, y: hy, life: 1.0, color: '#00ffff' });
 
         } else if (eaten.type === 'super') {
           playExtremeSound('eat_laser');
