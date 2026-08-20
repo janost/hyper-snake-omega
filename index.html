@@ -941,7 +941,7 @@
         vx: (Math.random() - 0.5) * 2,
         vy: (Math.random() - 0.5) * 2,
         size: Math.random() * 4 + 1,
-        hue: Math.random() * 360
+        hue: Math.round(Math.random() * 360)
       });
     }
 
@@ -1139,6 +1139,36 @@
     let feverActive = false;
     let feverTimeLeft = 0;
     let feverDuration = 8000;
+
+    /* -------------------------------------------------------------------------
+       Glow sprites. Drawing every particle as an arc with ctx.shadowBlur made the
+       particle pass the hot spot of the whole renderer: a nuke spawns 160 of them
+       in one frame and each blur is a separate full filter pass. Instead we bake
+       one radial-gradient sprite per colour and blit it with 'lighter', which is
+       the same look for a fraction of the cost.
+       ------------------------------------------------------------------------- */
+    const GLOW_SPRITE_SIZE = 64;
+    const glowSprites = new Map();
+
+    function getGlowSprite(color) {
+      let sprite = glowSprites.get(color);
+      if (sprite) return sprite;
+
+      sprite = document.createElement('canvas');
+      sprite.width = GLOW_SPRITE_SIZE;
+      sprite.height = GLOW_SPRITE_SIZE;
+      const sctx = sprite.getContext('2d');
+      const c = GLOW_SPRITE_SIZE / 2;
+      const grad = sctx.createRadialGradient(c, c, 0, c, c, c);
+      grad.addColorStop(0, '#ffffff');
+      grad.addColorStop(0.22, color);
+      grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      sctx.fillStyle = grad;
+      sctx.fillRect(0, 0, GLOW_SPRITE_SIZE, GLOW_SPRITE_SIZE);
+
+      glowSprites.set(color, sprite);
+      return sprite;
+    }
 
     // SPECIAL VISUAL FX ARRAYS
     let particles = [];
@@ -1573,6 +1603,8 @@
       // Render Ambient Background Galaxy Particles
       if (!lowGraphics) {
         bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+        bgCtx.save();
+        bgCtx.globalCompositeOperation = 'lighter';
         bgParticles.forEach(bp => {
           bp.x += bp.vx * (feverActive ? 4 : 1) * step;
           bp.y += bp.vy * (feverActive ? 4 : 1) * step;
@@ -1581,13 +1613,10 @@
           if (bp.y < 0) bp.y = bgCanvas.height;
           if (bp.y > bgCanvas.height) bp.y = 0;
 
-          bgCtx.fillStyle = `hsl(${bp.hue}, 100%, 65%)`;
-          bgCtx.shadowBlur = 15;
-          bgCtx.shadowColor = `hsl(${bp.hue}, 100%, 50%)`;
-          bgCtx.beginPath();
-          bgCtx.arc(bp.x, bp.y, bp.size, 0, Math.PI * 2);
-          bgCtx.fill();
+          const r = bp.size * 3;
+          bgCtx.drawImage(getGlowSprite(`hsl(${bp.hue}, 100%, 65%)`), bp.x - r, bp.y - r, r * 2, r * 2);
         });
+        bgCtx.restore();
       }
 
       // Calculate Speed Curve
@@ -1735,7 +1764,8 @@
               vy: (Math.random() - 0.5) * 2,
               life: 0.7,
               decay: 0.04,
-              color: `hsl(${(rainbowHue + idx * 18) % 360}, 100%, 70%)`,
+              // Quantised to 10deg so the glow sprite cache tops out at 37 entries.
+            color: `hsl(${Math.round(((rainbowHue + idx * 18) % 360) / 10) * 10}, 100%, 70%)`,
               size: Math.random() * 4 + 2
             });
           }
@@ -1879,8 +1909,11 @@
         if (sw.opacity <= 0 || sw.radius >= sw.maxRadius) shockwaves.splice(i, 1);
       }
 
-      // Draw Particles
+      // Draw Particles. One save/restore for the whole pass, additive blending,
+      // no per-particle shadow blur.
       const drag = decay(0.94);
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.x += p.vx * step;
@@ -1894,16 +1927,13 @@
           continue;
         }
 
-        ctx.save();
-        ctx.globalAlpha = p.life;
-        ctx.fillStyle = p.color;
-        ctx.shadowBlur = 18;
-        ctx.shadowColor = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, Math.max(1, p.size * p.life), 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
+        // 2.6x the old core radius: the sprite's outer falloff stands in for the
+        // 18px shadow blur that used to surround it.
+        const r = Math.max(1, p.size * p.life) * 2.6;
+        ctx.globalAlpha = Math.min(1, p.life);
+        ctx.drawImage(getGlowSprite(p.color), p.x - r, p.y - r, r * 2, r * 2);
       }
+      ctx.restore();
 
       // Draw Floating Points & Announcements
       for (let i = floatingTexts.length - 1; i >= 0; i--) {
