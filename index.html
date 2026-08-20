@@ -1,0 +1,1630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>🔥💥 HYPER SNAKE // APOCALYPSE SINGULARITY: MAXIMUM UNCHAINED OVERKILL 💥🔥</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Creepster&family=Press+Start+2P&family=Rubik+Glitch&family=Orbitron:wght@400;700;900&display=swap');
+
+    :root {
+      --neon-pink: #ff0055;
+      --neon-cyan: #00ffff;
+      --neon-lime: #00ff66;
+      --neon-yellow: #ffee00;
+      --neon-purple: #bd00ff;
+      --neon-orange: #ff5500;
+      --blood-red: #ff0033;
+      --plasma-blue: #0088ff;
+      --void-black: #000003;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background: var(--void-black);
+      color: #fff;
+      font-family: 'Orbitron', monospace, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      perspective: 1400px;
+    }
+
+    /* Strobes, hyper-flashes, screen tint overlay */
+    #apocalypse-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 50;
+      mix-blend-mode: screen;
+      opacity: 0;
+      background: radial-gradient(circle, #fff 0%, #ff0055 40%, transparent 80%);
+    }
+
+    #super-flash {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 60;
+      background: #fff;
+      opacity: 0;
+    }
+
+    /* 3D Infinity Hyperspace Wormhole Grid */
+    .space-warp-grid {
+      position: fixed;
+      inset: -100%;
+      width: 300%;
+      height: 300%;
+      background-image: 
+        radial-gradient(circle at center, transparent 0%, rgba(2,0,10,0.8) 70%),
+        linear-gradient(rgba(0, 255, 255, 0.2) 2px, transparent 2px),
+        linear-gradient(90deg, rgba(255, 0, 128, 0.2) 2px, transparent 2px);
+      background-size: 100% 100%, 50px 50px, 50px 50px;
+      transform: perspective(400px) rotateX(75deg) translateY(-300px);
+      animation: warpHyper 0.6s linear infinite;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    @keyframes warpHyper {
+      0% { transform: perspective(400px) rotateX(75deg) translateY(-300px) translateZ(0); }
+      100% { transform: perspective(400px) rotateX(75deg) translateY(-300px) translateZ(50px); }
+    }
+
+    /* Floating Hyper Neon Particle Canvas in body background */
+    #bg-fx-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Extreme layout container */
+    .master-wrapper {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: 1.2rem;
+      max-width: 100vw;
+      padding: 0.5rem;
+      transform-style: preserve-3d;
+    }
+
+    /* Left Sidebar: Unlocked Achievements Tracker */
+    .sidebar {
+      width: 220px;
+      height: 560px;
+      background: rgba(10, 0, 25, 0.85);
+      border: 2px solid var(--neon-cyan);
+      border-radius: 14px;
+      padding: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      box-shadow: 0 0 25px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(255, 0, 85, 0.2);
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+    }
+
+    .sidebar-title {
+      font-family: 'Black Ops One', cursive;
+      font-size: 0.95rem;
+      color: var(--neon-yellow);
+      text-align: center;
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px var(--neon-yellow);
+      border-bottom: 2px dashed rgba(255, 238, 0, 0.4);
+      padding-bottom: 0.4rem;
+    }
+
+    .achievements-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+    .achievements-list::-webkit-scrollbar { display: none; }
+
+    .achieve-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 0.4rem 0.6rem;
+      font-size: 0.65rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      opacity: 0.35;
+      filter: grayscale(1);
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .achieve-card.unlocked {
+      opacity: 1;
+      filter: grayscale(0);
+      border-color: var(--neon-lime);
+      background: rgba(0, 255, 102, 0.12);
+      box-shadow: 0 0 15px rgba(0, 255, 102, 0.3);
+      animation: badgePop 0.4s ease;
+    }
+
+    @keyframes badgePop {
+      0% { transform: scale(0.7); }
+      70% { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+
+    .achieve-name {
+      font-weight: 900;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .achieve-card.unlocked .achieve-name { color: var(--neon-lime); }
+    .achieve-desc { font-size: 0.55rem; color: #aaa; }
+
+    /* Center game column */
+    .center-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    /* Psycho header */
+    .title-banner {
+      font-family: 'Rubik Glitch', 'Black Ops One', cursive;
+      font-size: 2.8rem;
+      letter-spacing: 0.4rem;
+      text-transform: uppercase;
+      text-align: center;
+      background: linear-gradient(180deg, #fff 0%, var(--neon-yellow) 25%, var(--neon-pink) 60%, var(--neon-cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 30px #ff0055) drop-shadow(0 0 60px #00ffff);
+      animation: hyperFlicker 0.25s infinite alternate;
+      line-height: 1;
+    }
+
+    @keyframes hyperFlicker {
+      0% { transform: skewX(-3deg) scale(1.02); filter: drop-shadow(0 0 35px #ff0055) hue-rotate(0deg); }
+      50% { transform: skewX(3deg) scale(0.98); }
+      100% { transform: skewX(0deg) scale(1.04); filter: drop-shadow(0 0 55px #00ffff) hue-rotate(90deg); }
+    }
+
+    /* Top HUD Row */
+    .hud-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.6rem;
+      width: 560px;
+    }
+
+    .hud-cell {
+      background: rgba(12, 0, 30, 0.85);
+      border: 2px solid rgba(0, 255, 255, 0.4);
+      border-radius: 10px;
+      padding: 0.35rem 0.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.25);
+      backdrop-filter: blur(8px);
+    }
+
+    .hud-cell.danger-glow {
+      border-color: var(--blood-red) !important;
+      box-shadow: 0 0 25px var(--blood-red), inset 0 0 15px var(--blood-red) !important;
+      animation: redAlert 0.2s infinite alternate;
+    }
+
+    @keyframes redAlert {
+      0% { filter: brightness(1); }
+      100% { filter: brightness(1.7); }
+    }
+
+    .hud-lbl {
+      font-size: 0.55rem;
+      letter-spacing: 2px;
+      color: #00ffff;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .hud-val {
+      font-family: 'Black Ops One', monospace;
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 0 12px #00ffff;
+    }
+
+    /* Multi-tier Fever Mode Energy Bar */
+    .fever-bar-wrap {
+      width: 560px;
+      height: 14px;
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid var(--neon-yellow);
+      border-radius: 7px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(255, 238, 0, 0.4);
+    }
+
+    .fever-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--neon-cyan), var(--neon-lime), var(--neon-yellow), var(--neon-pink), #fff);
+      background-size: 300% 100%;
+      animation: rainbowLaser 0.5s linear infinite;
+      box-shadow: 0 0 25px #ff0055;
+    }
+
+    @keyframes rainbowLaser {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
+    }
+
+    .fever-text-indicator {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.6rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #fff;
+      text-shadow: 0 0 4px #000, 0 0 10px #ff0055;
+    }
+
+    /* Viewport Frame with Insane Shaders & Borders */
+    #rig-container {
+      position: relative;
+      padding: 8px;
+      border-radius: 18px;
+      background: linear-gradient(45deg, #ff0055, #bd00ff, #00ffff, #ffee00, #00ff66, #ff0055);
+      background-size: 600% 600%;
+      animation: borderSupernova 1.5s ease infinite;
+      box-shadow: 
+        0 0 60px rgba(255, 0, 85, 0.7),
+        0 0 120px rgba(0, 255, 255, 0.4),
+        inset 0 0 40px rgba(255, 255, 255, 0.7);
+      transform-origin: center center;
+    }
+
+    @keyframes borderSupernova {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    canvas#game {
+      display: block;
+      background: #000;
+      border-radius: 12px;
+      box-shadow: inset 0 0 60px rgba(0,0,0,0.9);
+    }
+
+    /* Screen overlays */
+    .vignette-crt {
+      position: absolute;
+      inset: 8px;
+      border-radius: 12px;
+      background: 
+        radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.85) 100%),
+        linear-gradient(rgba(255,255,255,0) 50%, rgba(0, 0, 0, 0.5) 50%);
+      background-size: 100% 100%, 100% 4px;
+      pointer-events: none;
+      z-index: 8;
+    }
+
+    /* Giant Voice/Announcer Overdrive Banner */
+    #screamer-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0) rotate(-15deg);
+      font-family: 'Black Ops One', 'Creepster', cursive;
+      font-size: 4rem;
+      font-weight: 900;
+      color: #fff;
+      text-align: center;
+      white-space: nowrap;
+      text-shadow: 
+        0 0 25px var(--neon-yellow),
+        0 0 60px var(--neon-pink),
+        0 0 100px var(--neon-cyan);
+      pointer-events: none;
+      z-index: 30;
+      opacity: 0;
+      transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.6), opacity 0.25s ease;
+    }
+
+    .screamer-active {
+      transform: translate(-50%, -50%) scale(1.2) rotate(3deg) !important;
+      opacity: 1 !important;
+    }
+
+    /* Achievement Pop-up Banner on the top-right */
+    #achievement-popup {
+      position: fixed;
+      top: 25px;
+      right: -400px;
+      background: linear-gradient(90deg, #10002b, #240046);
+      border: 2px solid var(--neon-yellow);
+      border-radius: 12px;
+      padding: 0.8rem 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: 0 0 35px var(--neon-yellow), inset 0 0 15px rgba(255, 238, 0, 0.4);
+      z-index: 100;
+      transition: right 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    #achievement-popup.show {
+      right: 25px;
+    }
+    .pop-icon { font-size: 2.2rem; }
+    .pop-info { display: flex; flex-direction: column; }
+    .pop-tag { font-size: 0.65rem; color: var(--neon-yellow); font-weight: 900; letter-spacing: 2px; }
+    .pop-title { font-size: 1.1rem; font-weight: 900; color: #fff; text-shadow: 0 0 10px #fff; }
+
+    /* Touch inputs */
+    .touch-controls {
+      display: none;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      width: 260px;
+      margin-top: 0.4rem;
+    }
+
+    .touch-btn {
+      background: rgba(255, 255, 255, 0.07);
+      border: 2px solid var(--neon-cyan);
+      color: #fff;
+      padding: 1rem;
+      border-radius: 12px;
+      font-weight: 900;
+      font-size: 1.6rem;
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+      touch-action: manipulation;
+    }
+    .touch-btn:active {
+      background: var(--neon-yellow);
+      color: #000;
+      box-shadow: 0 0 40px var(--neon-yellow);
+    }
+    .up { grid-column: 2; }
+    .left { grid-column: 1; grid-row: 2; }
+    .down { grid-column: 2; grid-row: 2; }
+    .right { grid-column: 3; grid-row: 2; }
+
+    @media (max-width: 950px) {
+      .sidebar { display: none; }
+      .hud-grid { width: 100%; max-width: 480px; }
+      .fever-bar-wrap { width: 100%; max-width: 480px; }
+      canvas#game { width: 340px; height: 340px; }
+      .title-banner { font-size: 2rem; }
+    }
+
+    @media (hover: none) and (pointer: coarse) {
+      .touch-controls { display: grid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="space-warp-grid"></div>
+  <canvas id="bg-fx-canvas"></canvas>
+  <div id="apocalypse-overlay"></div>
+  <div id="super-flash"></div>
+
+  <!-- Achievement Notification popup -->
+  <div id="achievement-popup">
+    <div class="pop-icon" id="pop-icon">🏆</div>
+    <div class="pop-info">
+      <span class="pop-tag">⚡ TROPHY UNLOCKED ⚡</span>
+      <span class="pop-title" id="pop-name">FIRST BLOOD</span>
+    </div>
+  </div>
+
+  <div class="master-wrapper">
+    <!-- Sidebar: Trophy Gallery -->
+    <div class="sidebar">
+      <div class="sidebar-title">🔥 ACHIEVEMENTS (<span id="achieve-count">0/12</span>)</div>
+      <div class="achievements-list" id="achieve-list"></div>
+    </div>
+
+    <!-- Center Stage -->
+    <div class="center-col">
+      <div class="title-banner">HYPER SNAKE 🔥 SINGULARITY</div>
+
+      <!-- Super HUD -->
+      <div class="hud-grid">
+        <div class="hud-cell">
+          <span class="hud-lbl">SCORE</span>
+          <span id="score" class="hud-val">0</span>
+        </div>
+        <div class="hud-cell" id="combo-cell">
+          <span class="hud-lbl">COMBO</span>
+          <span id="combo-val" class="hud-val" style="color: var(--neon-yellow);">1.0x</span>
+        </div>
+        <div class="hud-cell">
+          <span class="hud-lbl">LENGTH</span>
+          <span id="len-val" class="hud-val" style="color: var(--neon-lime);">5</span>
+        </div>
+        <div class="hud-cell">
+          <span class="hud-lbl">HYPER SPEED</span>
+          <span id="speed-val" class="hud-val" style="color: var(--neon-pink);">100%</span>
+        </div>
+        <div class="hud-cell">
+          <span class="hud-lbl">BEST</span>
+          <span id="best-val" class="hud-val" style="color: var(--neon-cyan);">0</span>
+        </div>
+      </div>
+
+      <!-- FEVER / OVERDRIVE CHARGE BAR -->
+      <div class="fever-bar-wrap">
+        <div class="fever-fill" id="fever-fill"></div>
+        <div class="fever-text-indicator" id="fever-txt">⚡ HYPER-DRIVE IDLE ⚡</div>
+      </div>
+
+      <!-- Game Canvas Rig -->
+      <div id="rig-container">
+        <div class="vignette-crt"></div>
+        <div id="screamer-text">SINGULARITY!!</div>
+        <canvas id="game" width="540" height="540"></canvas>
+      </div>
+
+      <!-- Touch Controls -->
+      <div class="touch-controls">
+        <button class="touch-btn up" data-key="ArrowUp">▲</button>
+        <button class="touch-btn left" data-key="ArrowLeft">◀</button>
+        <button class="touch-btn down" data-key="ArrowDown">▼</button>
+        <button class="touch-btn right" data-key="ArrowRight">▶</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================================
+       1. 200BPM PROCEDURAL DRUM & SYNTHWAVE / DUBSTEP AUDIO ENGINE (Web Audio)
+       ========================================================================= */
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let actx = null;
+
+    function initAudio() {
+      if (!actx) {
+        actx = new AudioContext();
+        startSynthSoundtrack();
+      }
+      if (actx.state === 'suspended') actx.resume();
+    }
+
+    let musicTimer = null;
+    let musicBeat = 0;
+    // Hardstyle / Darksynth Bassline progression
+    const synthNotes = [43.65, 43.65, 51.91, 58.27, 43.65, 65.41, 77.78, 87.31]; // F1, G#1, A#1, C2, D#2, F2
+
+    function startSynthSoundtrack() {
+      if (musicTimer) return;
+      const bpm = 150;
+      const intervalMs = (60 / bpm / 4) * 1000; // 16th notes
+
+      musicTimer = setInterval(() => {
+        if (!actx || !gameStarted || gameOver) return;
+        const t = actx.currentTime;
+
+        // Kick on every quarter note (step 0, 4, 8, 12)
+        if (musicBeat % 4 === 0) {
+          const kickOsc = actx.createOscillator();
+          const kickGain = actx.createGain();
+          kickOsc.type = 'sine';
+          kickOsc.frequency.setValueAtTime(140, t);
+          kickOsc.frequency.exponentialRampToValueAtTime(35, t + 0.12);
+          kickGain.gain.setValueAtTime(feverActive ? 0.6 : 0.4, t);
+          kickGain.gain.linearRampToValueAtTime(0.001, t + 0.14);
+          kickOsc.connect(kickGain);
+          kickGain.connect(actx.destination);
+          kickOsc.start(t);
+          kickOsc.stop(t + 0.14);
+        }
+
+        // Snare / Clap on step 4 & 12
+        if (musicBeat % 8 === 4) {
+          const noiseBuffer = actx.createBuffer(1, actx.sampleRate * 0.15, actx.sampleRate);
+          const out = noiseBuffer.getChannelData(0);
+          for (let i = 0; i < out.length; i++) out[i] = (Math.random() * 2 - 1) * 0.3;
+          const noiseSrc = actx.createBufferSource();
+          noiseSrc.buffer = noiseBuffer;
+          const filter = actx.createBiquadFilter();
+          filter.type = 'highpass';
+          filter.frequency.setValueAtTime(1000, t);
+          const noiseGain = actx.createGain();
+          noiseGain.gain.setValueAtTime(0.3, t);
+          noiseGain.gain.linearRampToValueAtTime(0.001, t + 0.15);
+          noiseSrc.connect(filter);
+          filter.connect(noiseGain);
+          noiseGain.connect(actx.destination);
+          noiseSrc.start(t);
+        }
+
+        // Heavy Rolling Acid Bass
+        if (musicBeat % 2 === 0) {
+          const osc = actx.createOscillator();
+          const gain = actx.createGain();
+          const flt = actx.createBiquadFilter();
+
+          osc.type = feverActive ? 'sawtooth' : 'square';
+          const rootFreq = synthNotes[(Math.floor(musicBeat / 4)) % synthNotes.length];
+          const oct = feverActive ? 2 : 1;
+          osc.frequency.setValueAtTime(rootFreq * oct, t);
+
+          flt.type = 'lowpass';
+          flt.Q.setValueAtTime(feverActive ? 8 : 4, t);
+          flt.frequency.setValueAtTime(feverActive ? 3000 : 800, t);
+          flt.frequency.exponentialRampToValueAtTime(100, t + 0.15);
+
+          gain.gain.setValueAtTime(0.2, t);
+          gain.gain.linearRampToValueAtTime(0.001, t + 0.15);
+
+          osc.connect(flt);
+          flt.connect(gain);
+          gain.connect(actx.destination);
+          osc.start(t);
+          osc.stop(t + 0.15);
+        }
+
+        musicBeat++;
+      }, intervalMs);
+    }
+
+    // Dynamic Extreme SFX System
+    function playExtremeSound(type) {
+      if (!actx) return;
+      const t = actx.currentTime;
+
+      if (type === 'eat_normal') {
+        const osc = actx.createOscillator();
+        const gain = actx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(440, t);
+        osc.frequency.exponentialRampToValueAtTime(1200, t + 0.12);
+        gain.gain.setValueAtTime(0.3, t);
+        gain.gain.linearRampToValueAtTime(0.01, t + 0.12);
+        osc.connect(gain);
+        gain.connect(actx.destination);
+        osc.start(t);
+        osc.stop(t + 0.12);
+      } else if (type === 'eat_laser') {
+        // Laser Zap
+        const osc = actx.createOscillator();
+        const gain = actx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(1800, t);
+        osc.frequency.exponentialRampToValueAtTime(100, t + 0.2);
+        gain.gain.setValueAtTime(0.4, t);
+        gain.gain.linearRampToValueAtTime(0.01, t + 0.2);
+        osc.connect(gain);
+        gain.connect(actx.destination);
+        osc.start(t);
+        osc.stop(t + 0.2);
+      } else if (type === 'eat_nuke') {
+        // Thermonuclear bomb explosion noise + sub drop
+        const buf = actx.createBuffer(1, actx.sampleRate * 1.2, actx.sampleRate);
+        const d = buf.getChannelData(0);
+        for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+        const noise = actx.createBufferSource();
+        noise.buffer = buf;
+        const flt = actx.createBiquadFilter();
+        flt.type = 'lowpass';
+        flt.frequency.setValueAtTime(1200, t);
+        flt.frequency.exponentialRampToValueAtTime(20, t + 1.2);
+        const g = actx.createGain();
+        g.gain.setValueAtTime(0.8, t);
+        g.gain.linearRampToValueAtTime(0.01, t + 1.2);
+        noise.connect(flt);
+        flt.connect(g);
+        g.connect(actx.destination);
+        noise.start(t);
+
+        // Sub blast
+        const sub = actx.createOscillator();
+        const subG = actx.createGain();
+        sub.type = 'sine';
+        sub.frequency.setValueAtTime(90, t);
+        sub.frequency.exponentialRampToValueAtTime(20, t + 0.8);
+        subG.gain.setValueAtTime(0.7, t);
+        subG.gain.linearRampToValueAtTime(0.01, t + 0.8);
+        sub.connect(subG);
+        subG.connect(actx.destination);
+        sub.start(t);
+        sub.stop(t + 0.8);
+      } else if (type === 'eat_blackhole') {
+        // Cosmic Singularity Riser
+        const osc = actx.createOscillator();
+        const g = actx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(80, t);
+        osc.frequency.exponentialRampToValueAtTime(2400, t + 0.5);
+        g.gain.setValueAtTime(0.4, t);
+        g.gain.linearRampToValueAtTime(0.01, t + 0.5);
+        osc.connect(g);
+        g.connect(actx.destination);
+        osc.start(t);
+        osc.stop(t + 0.5);
+      } else if (type === 'turn') {
+        const osc = actx.createOscillator();
+        const g = actx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(220, t);
+        osc.frequency.exponentialRampToValueAtTime(110, t + 0.04);
+        g.gain.setValueAtTime(0.08, t);
+        g.gain.linearRampToValueAtTime(0.001, t + 0.04);
+        osc.connect(g);
+        g.connect(actx.destination);
+        osc.start(t);
+        osc.stop(t + 0.04);
+      } else if (type === 'fever_activate') {
+        // Victory Fanfare Chord
+        [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98].forEach((f, idx) => {
+          const o = actx.createOscillator();
+          const g = actx.createGain();
+          o.type = 'triangle';
+          o.frequency.setValueAtTime(f, t + idx * 0.03);
+          g.gain.setValueAtTime(0.25, t + idx * 0.03);
+          g.gain.linearRampToValueAtTime(0.001, t + idx * 0.03 + 0.4);
+          o.connect(g);
+          g.connect(actx.destination);
+          o.start(t + idx * 0.03);
+          o.stop(t + idx * 0.03 + 0.4);
+        });
+      } else if (type === 'achieve') {
+        [440, 554.37, 659.25, 880].forEach((f, i) => {
+          const o = actx.createOscillator();
+          const g = actx.createGain();
+          o.type = 'square';
+          o.frequency.setValueAtTime(f, t + i * 0.07);
+          g.gain.setValueAtTime(0.2, t + i * 0.07);
+          g.gain.linearRampToValueAtTime(0.001, t + i * 0.07 + 0.15);
+          o.connect(g);
+          g.connect(actx.destination);
+          o.start(t + i * 0.07);
+          o.stop(t + i * 0.07 + 0.15);
+        });
+      }
+    }
+
+    /* =========================================================================
+       2. INSANE ACHIEVEMENTS & TROPHY SYSTEM (Persistent)
+       ========================================================================= */
+    const ACHIEVEMENTS_DEF = [
+      { id: 'first_blood', icon: '🩸', title: 'FIRST BLOOD', desc: 'Devour your first cyber-matter core' },
+      { id: 'combo_5', icon: '⚡', title: 'HYPER VELOCITY', desc: 'Reach a 5x combo streak' },
+      { id: 'combo_10', icon: '🔥', title: 'UNSTOPPABLE APEX', desc: 'Reach a 10x godlike combo' },
+      { id: 'fever_starter', icon: '🌈', title: 'OVERDRIVE FEVER', desc: 'Fill the energy bar to 100%' },
+      { id: 'nuke_master', icon: '☢️', title: 'THERMONUCLEAR CZAR', desc: 'Detonate a nuclear plasma reactor' },
+      { id: 'singularity', icon: '🌌', title: 'BLACK HOLE SUTRA', desc: 'Absorb a galactic cosmic singularity' },
+      { id: 'speed_demon', icon: '🚀', title: 'WARP FACTOR 9', desc: 'Reach 200%+ game engine speed' },
+      { id: 'long_boi', icon: '🐉', title: 'COSMIC OUROBOROS', desc: 'Grow the snake to length 25' },
+      { id: 'titan_len', icon: '👑', title: 'WORLD DEVOURER', desc: 'Grow the snake to length 40' },
+      { id: 'score_1k', icon: '💎', title: 'HIGH ROLLER (1K)', desc: 'Score over 1,000 points' },
+      { id: 'score_3k', icon: '⭐', title: 'IMMORTAL DEITY (3K)', desc: 'Score over 3,000 points' },
+      { id: 'ghost_slayer', icon: '👻', title: 'DEATH DEFIER', desc: 'Survive in Fever mode for 10 seconds' }
+    ];
+
+    let unlockedAchieves = JSON.parse(localStorage.getItem('hyper_snake_achieves') || '{}');
+
+    function renderAchievementsSidebar() {
+      const listEl = document.getElementById('achieve-list');
+      const countEl = document.getElementById('achieve-count');
+      listEl.innerHTML = '';
+
+      let count = 0;
+      ACHIEVEMENTS_DEF.forEach(a => {
+        const isUnlocked = !!unlockedAchieves[a.id];
+        if (isUnlocked) count++;
+
+        const div = document.createElement('div');
+        div.className = `achieve-card ${isUnlocked ? 'unlocked' : ''}`;
+        div.innerHTML = `
+          <div class="achieve-name">${a.icon} ${a.title}</div>
+          <div class="achieve-desc">${a.desc}</div>
+        `;
+        listEl.appendChild(div);
+      });
+      countEl.textContent = `${count}/${ACHIEVEMENTS_DEF.length}`;
+    }
+
+    function unlockAchievement(id) {
+      if (unlockedAchieves[id]) return;
+      unlockedAchieves[id] = true;
+      localStorage.setItem('hyper_snake_achieves', JSON.stringify(unlockedAchieves));
+      renderAchievementsSidebar();
+      playExtremeSound('achieve');
+
+      const ach = ACHIEVEMENTS_DEF.find(a => a.id === id);
+      if (ach) {
+        document.getElementById('pop-icon').textContent = ach.icon;
+        document.getElementById('pop-name').textContent = ach.title;
+        const pop = document.getElementById('achievement-popup');
+        pop.classList.add('show');
+        setTimeout(() => pop.classList.remove('show'), 3500);
+      }
+    }
+
+    renderAchievementsSidebar();
+
+    /* =========================================================================
+       3. BACKGROUND AMBIENT PARTICLES
+       ========================================================================= */
+    const bgCanvas = document.getElementById('bg-fx-canvas');
+    const bgCtx = bgCanvas.getContext('2d');
+    let bgParticles = [];
+
+    function resizeBgCanvas() {
+      bgCanvas.width = window.innerWidth;
+      bgCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeBgCanvas);
+    resizeBgCanvas();
+
+    for (let i = 0; i < 60; i++) {
+      bgParticles.push({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        vx: (Math.random() - 0.5) * 2,
+        vy: (Math.random() - 0.5) * 2,
+        size: Math.random() * 4 + 1,
+        hue: Math.random() * 360
+      });
+    }
+
+    /* =========================================================================
+       4. MAIN GAME CORE LOGIC & VISUAL ARSENAL
+       ========================================================================= */
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+
+    // DOM References
+    const scoreEl = document.getElementById('score');
+    const comboEl = document.getElementById('combo-val');
+    const lenEl = document.getElementById('len-val');
+    const speedEl = document.getElementById('speed-val');
+    const bestEl = document.getElementById('best-val');
+    const comboCell = document.getElementById('combo-cell');
+    const feverFill = document.getElementById('fever-fill');
+    const feverTxt = document.getElementById('fever-txt');
+    const rig = document.getElementById('rig-container');
+    const screamer = document.getElementById('screamer-text');
+    const apocOverlay = document.getElementById('apocalypse-overlay');
+    const superFlash = document.getElementById('super-flash');
+
+    const GRID_SIZE = 27;
+    const TILE_COUNT = canvas.width / GRID_SIZE; // 20x20
+    const BASE_SPEED = 105;
+
+    let snake = [];
+    let direction = { x: 0, y: 0 };
+    let nextDirection = { x: 0, y: 0 };
+    let foods = []; // Multi-food arsenal: normal, super, nuke, blackhole, laser
+    let score = 0;
+    let combo = 0;
+    let lastEatTimestamp = 0;
+    const COMBO_WINDOW = 3500;
+    let highScore = localStorage.getItem('hyper_snake_omega_hi') || 0;
+    let gameOver = false;
+    let gameStarted = false;
+
+    // FEVER / OVERDRIVE SYSTEM
+    let feverEnergy = 0; // 0 to 100
+    let feverActive = false;
+    let feverTimeLeft = 0;
+    let feverDuration = 8000;
+
+    // SPECIAL VISUAL FX ARRAYS
+    let particles = [];
+    let shockwaves = [];
+    let floatingTexts = [];
+    let lightningBolts = [];
+    let cosmicLasers = [];
+    let blackHoleSingularity = null; // Blackhole gravity well
+
+    // Camera & Screen Distortions
+    let screenShake = 0;
+    let chromaticAberration = 0;
+    let cameraZoom = 1;
+    let cameraRotate = 0;
+    let flashIntensity = 0;
+    let rainbowHue = 0;
+    let lastTick = 0;
+
+    bestEl.textContent = highScore;
+
+    function resetGame() {
+      snake = [
+        { x: 10, y: 10 },
+        { x: 10, y: 11 },
+        { x: 10, y: 12 },
+        { x: 10, y: 13 },
+        { x: 10, y: 14 }
+      ];
+      direction = { x: 0, y: -1 };
+      nextDirection = { x: 0, y: -1 };
+      score = 0;
+      combo = 0;
+      feverEnergy = 0;
+      feverActive = false;
+      scoreEl.textContent = '0';
+      comboEl.textContent = '1.0x';
+      lenEl.textContent = '5';
+      speedEl.textContent = '100%';
+      gameOver = false;
+      gameStarted = false;
+
+      particles = [];
+      shockwaves = [];
+      floatingTexts = [];
+      lightningBolts = [];
+      cosmicLasers = [];
+      foods = [];
+      blackHoleSingularity = null;
+
+      spawnFood('normal');
+      spawnFood('super');
+      spawnFood('nuke');
+      comboCell.classList.remove('danger-glow');
+    }
+
+    function spawnFood(forcedType = null) {
+      if (foods.length >= 5) return;
+
+      let pos;
+      while (true) {
+        pos = {
+          x: Math.floor(Math.random() * TILE_COUNT),
+          y: Math.floor(Math.random() * TILE_COUNT)
+        };
+        const hitsSnake = snake.some(s => s.x === pos.x && s.y === pos.y);
+        const hitsFood = foods.some(f => f.x === pos.x && f.y === pos.y);
+        if (!hitsSnake && !hitsFood) break;
+      }
+
+      const roll = Math.random();
+      let type = forcedType;
+      if (!type) {
+        if (roll < 0.15) type = 'blackhole';
+        else if (roll < 0.35) type = 'nuke';
+        else if (roll < 0.60) type = 'laser';
+        else if (roll < 0.80) type = 'super';
+        else type = 'normal';
+      }
+
+      foods.push({
+        x: pos.x,
+        y: pos.y,
+        type: type,
+        phase: Math.random() * Math.PI * 2,
+        born: performance.now()
+      });
+
+      // Spawn portal entry particles
+      const px = pos.x * GRID_SIZE + GRID_SIZE / 2;
+      const py = pos.y * GRID_SIZE + GRID_SIZE / 2;
+      for (let i = 0; i < 20; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const spd = Math.random() * 5 + 2;
+        particles.push({
+          x: px, y: py,
+          vx: Math.cos(ang) * spd,
+          vy: Math.sin(ang) * spd,
+          life: 1.0,
+          decay: 0.03,
+          color: getFoodColor(type),
+          size: Math.random() * 5 + 2
+        });
+      }
+    }
+
+    function getFoodColor(type) {
+      switch (type) {
+        case 'nuke': return '#ff0033';
+        case 'blackhole': return '#bd00ff';
+        case 'laser': return '#00ffff';
+        case 'super': return '#ffee00';
+        default: return '#00ff66';
+      }
+    }
+
+    function triggerScreamer(text, color = '#fff') {
+      screamer.textContent = text;
+      screamer.style.color = color;
+      screamer.classList.add('screamer-active');
+      setTimeout(() => screamer.classList.remove('screamer-active'), 850);
+    }
+
+    function triggerLightning(x1, y1, x2, y2, color = '#00ffff') {
+      const segments = [];
+      let cx = x1, cy = y1;
+      const steps = 7;
+      for (let i = 0; i < steps; i++) {
+        const tx = x1 + ((x2 - x1) / steps) * (i + 1);
+        const ty = y1 + ((y2 - y1) / steps) * (i + 1);
+        const jx = (Math.random() - 0.5) * 50;
+        const jy = (Math.random() - 0.5) * 50;
+        segments.push({ x1: cx, y1: cy, x2: tx + jx, y2: ty + jy });
+        cx = tx + jx;
+        cy = ty + jy;
+      }
+      lightningBolts.push({ segments, life: 1.0, color });
+    }
+
+    function spawnHyperExplosion(x, y, count, colors, speedMultiplier = 1) {
+      for (let i = 0; i < count; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const spd = (Math.random() * 12 + 3) * speedMultiplier;
+        particles.push({
+          x, y,
+          vx: Math.cos(ang) * spd,
+          vy: Math.sin(ang) * spd,
+          life: 1.0,
+          decay: Math.random() * 0.02 + 0.015,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          size: Math.random() * 8 + 3
+        });
+      }
+    }
+
+    function addShockwave(x, y, color, maxRadius = 180) {
+      shockwaves.push({ x, y, radius: 10, maxRadius, opacity: 1, color });
+    }
+
+    function addFloatingText(text, x, y, color, scale = 1.2) {
+      floatingTexts.push({
+        text, x, y,
+        vy: -3.5,
+        life: 1.0,
+        decay: 0.016,
+        color,
+        scale
+      });
+    }
+
+    /* =========================================================================
+       5. GAME LOOP LOGIC TICK
+       ========================================================================= */
+    function updateLogic() {
+      if (!gameStarted || gameOver) return;
+
+      direction = { ...nextDirection };
+      const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+
+      // Wall Wrapping in FEVER MODE, or Fatal Crash in Normal Mode
+      if (head.x < 0 || head.x >= TILE_COUNT || head.y < 0 || head.y >= TILE_COUNT) {
+        if (feverActive) {
+          // Warp through walls during fever
+          head.x = (head.x + TILE_COUNT) % TILE_COUNT;
+          head.y = (head.y + TILE_COUNT) % TILE_COUNT;
+          triggerLightning(snake[0].x * GRID_SIZE, snake[0].y * GRID_SIZE, head.x * GRID_SIZE, head.y * GRID_SIZE, '#ffee00');
+        } else {
+          annihilateSnake('WALL IMPACT FATALITY');
+          return;
+        }
+      }
+
+      // Self Collision Check (Immune during fever)
+      for (let i = 0; i < snake.length; i++) {
+        if (head.x === snake[i].x && head.y === snake[i].y) {
+          if (!feverActive) {
+            annihilateSnake('OUROBOROS SELF DESTRUCTION');
+            return;
+          }
+        }
+      }
+
+      snake.unshift(head);
+      lenEl.textContent = snake.length;
+
+      // Check achievement for length
+      if (snake.length >= 25) unlockAchievement('long_boi');
+      if (snake.length >= 40) unlockAchievement('titan_len');
+
+      // Check Food Collisions
+      let eatenIdx = -1;
+      for (let i = 0; i < foods.length; i++) {
+        if (head.x === foods[i].x && head.y === foods[i].y) {
+          eatenIdx = i;
+          break;
+        }
+      }
+
+      if (eatenIdx !== -1) {
+        const eaten = foods[eatenIdx];
+        foods.splice(eatenIdx, 1);
+
+        unlockAchievement('first_blood');
+
+        combo++;
+        lastEatTimestamp = performance.now();
+        const mult = 1 + (combo - 1) * 0.5 + (feverActive ? 2.0 : 0);
+        comboEl.textContent = mult.toFixed(1) + 'x';
+        comboCell.classList.add('danger-glow');
+
+        if (combo >= 5) unlockAchievement('combo_5');
+        if (combo >= 10) unlockAchievement('combo_10');
+
+        // Charge Fever Gauge
+        if (!feverActive) {
+          feverEnergy = Math.min(100, feverEnergy + (eaten.type === 'nuke' || eaten.type === 'blackhole' ? 35 : 18));
+          if (feverEnergy >= 100) {
+            activateFeverMode();
+          }
+        }
+
+        const hx = head.x * GRID_SIZE + GRID_SIZE / 2;
+        const hy = head.y * GRID_SIZE + GRID_SIZE / 2;
+
+        let basePoints = 10;
+
+        // FOOD TYPE SPECIAL DISASTERS
+        if (eaten.type === 'blackhole') {
+          unlockAchievement('singularity');
+          playExtremeSound('eat_blackhole');
+          basePoints = 150;
+          screenShake = 45;
+          cameraZoom = 1.25;
+          flashIntensity = 0.9;
+          spawnHyperExplosion(hx, hy, 140, ['#bd00ff', '#00ffff', '#fff', '#ff00ff'], 1.5);
+          addShockwave(hx, hy, '#bd00ff', 350);
+          addFloatingText(`🌌 BLACK HOLE +${Math.round(basePoints * mult)}!`, hx, hy - 25, '#bd00ff', 2.2);
+          triggerScreamer('COSMIC SINGULARITY!!', '#bd00ff');
+
+          // Pull all remaining foods into player mouth
+          foods.forEach(f => {
+            triggerLightning(hx, hy, f.x * GRID_SIZE + GRID_SIZE/2, f.y * GRID_SIZE + GRID_SIZE/2, '#bd00ff');
+          });
+
+        } else if (eaten.type === 'nuke') {
+          unlockAchievement('nuke_master');
+          playExtremeSound('eat_nuke');
+          basePoints = 100;
+          screenShake = 55;
+          cameraRotate = (Math.random() - 0.5) * 0.25;
+          cameraZoom = 1.2;
+          flashIntensity = 1.0;
+          spawnHyperExplosion(hx, hy, 160, ['#ff0033', '#ffee00', '#fff', '#ff5500'], 1.8);
+          addShockwave(hx, hy, '#ff0033', 400);
+          addFloatingText(`☢️ NUCLEAR OVERKILL +${Math.round(basePoints * mult)}!`, hx, hy - 25, '#ff0033', 2.4);
+          triggerScreamer('💥 APOCALYPTIC NUKE 💥', '#ff0033');
+
+          // Arc 4 corners
+          triggerLightning(hx, hy, 0, 0, '#ff0033');
+          triggerLightning(hx, hy, canvas.width, 0, '#ff0033');
+          triggerLightning(hx, hy, 0, canvas.height, '#ff0033');
+          triggerLightning(hx, hy, canvas.width, canvas.height, '#ff0033');
+
+        } else if (eaten.type === 'laser') {
+          playExtremeSound('eat_laser');
+          basePoints = 60;
+          screenShake = 25;
+          spawnHyperExplosion(hx, hy, 70, ['#00ffff', '#fff', '#0088ff']);
+          addShockwave(hx, hy, '#00ffff', 220);
+          addFloatingText(`⚡ LASER BURST +${Math.round(basePoints * mult)}!`, hx, hy - 20, '#00ffff', 1.8);
+
+          // Fire cross laser beams along whole row & col
+          cosmicLasers.push({ x: hx, y: hy, life: 1.0, color: '#00ffff' });
+
+        } else if (eaten.type === 'super') {
+          playExtremeSound('eat_laser');
+          basePoints = 40;
+          screenShake = 20;
+          spawnHyperExplosion(hx, hy, 60, ['#ffee00', '#ff0055', '#fff']);
+          addShockwave(hx, hy, '#ffee00', 200);
+          addFloatingText(`⭐ HYPER STAR +${Math.round(basePoints * mult)}!`, hx, hy - 15, '#ffee00', 1.6);
+
+        } else {
+          playExtremeSound('eat_normal');
+          screenShake = 12;
+          spawnHyperExplosion(hx, hy, 35, ['#00ff66', '#00ffff', '#fff']);
+          addShockwave(hx, hy, '#00ff66', 130);
+          addFloatingText(`+${Math.round(basePoints * mult)}`, hx, hy - 10, '#00ff66', 1.3);
+        }
+
+        const gained = Math.round(basePoints * mult);
+        score += gained;
+        scoreEl.textContent = score;
+
+        if (score >= 1000) unlockAchievement('score_1k');
+        if (score >= 3000) unlockAchievement('score_3k');
+
+        if (score > highScore) {
+          highScore = score;
+          bestEl.textContent = highScore;
+          localStorage.setItem('hyper_snake_omega_hi', highScore);
+        }
+
+        // Keep 3 to 4 foods on screen
+        spawnFood();
+        if (foods.length < 3) spawnFood();
+        if (Math.random() < 0.3) spawnFood();
+
+      } else {
+        snake.pop();
+      }
+    }
+
+    function activateFeverMode() {
+      feverActive = true;
+      feverTimeLeft = feverDuration;
+      unlockAchievement('fever_starter');
+      playExtremeSound('fever_activate');
+      triggerScreamer('⚡ RAINBOW FEVER ⚡', '#ffee00');
+      screenShake = 50;
+      flashIntensity = 0.8;
+      setTimeout(() => {
+        if (gameStarted && !gameOver) unlockAchievement('ghost_slayer');
+      }, 7900);
+    }
+
+    function annihilateSnake(reason) {
+      gameOver = true;
+      playExtremeSound('eat_nuke');
+      screenShake = 80;
+      flashIntensity = 1.0;
+      cameraZoom = 1.3;
+      cameraRotate = 0.3;
+      triggerScreamer('💀 CRITICAL DESTRUCTION 💀', '#ff0033');
+
+      // Sequentially vaporize every single segment in an apocalyptic fireworks chain
+      snake.forEach((seg, idx) => {
+        setTimeout(() => {
+          const sx = seg.x * GRID_SIZE + GRID_SIZE / 2;
+          const sy = seg.y * GRID_SIZE + GRID_SIZE / 2;
+          spawnHyperExplosion(sx, sy, 40, ['#ff0033', '#ffee00', '#ff00ff', '#fff', '#ff5500'], 1.6);
+          addShockwave(sx, sy, '#ff0033', 150);
+          triggerLightning(sx, sy, Math.random() * canvas.width, Math.random() * canvas.height, '#ff0033');
+          screenShake = Math.max(screenShake, 20);
+        }, idx * 25);
+      });
+    }
+
+    /* =========================================================================
+       6. 60FPS MASTER RENDER ENGINE (Post-Processing, CRT, Blooms, Shaders)
+       ========================================================================= */
+    function renderLoop(timestamp) {
+      requestAnimationFrame(renderLoop);
+
+      rainbowHue = (rainbowHue + 3) % 360;
+
+      // Render Ambient Background Galaxy Particles
+      bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+      bgParticles.forEach(bp => {
+        bp.x += bp.vx * (feverActive ? 4 : 1);
+        bp.y += bp.vy * (feverActive ? 4 : 1);
+        if (bp.x < 0) bp.x = bgCanvas.width;
+        if (bp.x > bgCanvas.width) bp.x = 0;
+        if (bp.y < 0) bp.y = bgCanvas.height;
+        if (bp.y > bgCanvas.height) bp.y = 0;
+
+        bgCtx.fillStyle = `hsl(${bp.hue}, 100%, 65%)`;
+        bgCtx.shadowBlur = 15;
+        bgCtx.shadowColor = `hsl(${bp.hue}, 100%, 50%)`;
+        bgCtx.beginPath();
+        bgCtx.arc(bp.x, bp.y, bp.size, 0, Math.PI * 2);
+        bgCtx.fill();
+      });
+
+      // Calculate Speed Curve
+      const speedScale = Math.min(3.0, 1 + (score / 400) * 0.35 + (combo * 0.08) + (feverActive ? 0.6 : 0));
+      const currentTickRate = Math.max(38, BASE_SPEED / speedScale);
+      speedEl.textContent = Math.round(speedScale * 100) + '%';
+      if (speedScale >= 2.0) unlockAchievement('speed_demon');
+
+      // Update Game Logic Step
+      if (timestamp - lastTick >= currentTickRate) {
+        updateLogic();
+        lastTick = timestamp;
+      }
+
+      // Combo Decay
+      if (combo > 0) {
+        const elapsed = performance.now() - lastEatTimestamp;
+        if (elapsed > COMBO_WINDOW) {
+          combo = 0;
+          comboEl.textContent = '1.0x';
+          comboCell.classList.remove('danger-glow');
+        }
+      }
+
+      // FEVER GAUGE DYNAMICS
+      if (feverActive) {
+        feverTimeLeft -= 16.6;
+        const progress = Math.max(0, feverTimeLeft / feverDuration);
+        feverFill.style.width = (progress * 100) + '%';
+        feverTxt.textContent = `⚡ FEVER ACTIVE: ${(feverTimeLeft/1000).toFixed(1)}s (GODMODE) ⚡`;
+        if (feverTimeLeft <= 0) {
+          feverActive = false;
+          feverEnergy = 0;
+        }
+      } else {
+        feverFill.style.width = feverEnergy + '%';
+        feverTxt.textContent = feverEnergy > 0 ? `ENERGY: ${Math.round(feverEnergy)}%` : `⚡ HYPER-DRIVE IDLE ⚡`;
+      }
+
+      // Smooth Camera Decay
+      cameraZoom += (1 - cameraZoom) * 0.08;
+      cameraRotate += (0 - cameraRotate) * 0.08;
+
+      let shakeX = 0, shakeY = 0;
+      if (screenShake > 0) {
+        shakeX = (Math.random() - 0.5) * screenShake * 2.5;
+        shakeY = (Math.random() - 0.5) * screenShake * 2.5;
+        screenShake *= 0.88;
+        if (screenShake < 0.2) screenShake = 0;
+      }
+
+      rig.style.transform = `translate(${shakeX}px, ${shakeY}px) scale(${cameraZoom}) rotate(${cameraRotate}rad)`;
+
+      // Flashes & strobe overlays
+      if (flashIntensity > 0) {
+        superFlash.style.opacity = flashIntensity;
+        flashIntensity *= 0.82;
+      }
+      apocOverlay.style.opacity = feverActive ? (Math.sin(timestamp * 0.02) * 0.25 + 0.35) : (combo > 5 ? 0.2 : 0);
+
+      // MAIN CANVAS DRAWING
+      ctx.save();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = feverActive ? '#050010' : '#010006';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Hyper Rave Grid Lines
+      ctx.lineWidth = 1;
+      for (let x = 0; x <= canvas.width; x += GRID_SIZE) {
+        const p = Math.sin((timestamp * 0.004) + (x * 0.03)) * 0.12 + 0.12;
+        ctx.strokeStyle = feverActive ? `hsla(${(rainbowHue + x) % 360}, 100%, 60%, ${p * 2})` : `rgba(0, 255, 255, ${p})`;
+        ctx.beginPath();
+        ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= canvas.height; y += GRID_SIZE) {
+        const p = Math.cos((timestamp * 0.004) + (y * 0.03)) * 0.12 + 0.12;
+        ctx.strokeStyle = feverActive ? `hsla(${(rainbowHue + y) % 360}, 100%, 60%, ${p * 2})` : `rgba(255, 0, 128, ${p})`;
+        ctx.beginPath();
+        ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+
+      // Draw Laser Beams across whole canvas
+      for (let i = cosmicLasers.length - 1; i >= 0; i--) {
+        const beam = cosmicLasers[i];
+        ctx.save();
+        ctx.strokeStyle = beam.color;
+        ctx.lineWidth = 14 * beam.life;
+        ctx.shadowBlur = 35;
+        ctx.shadowColor = beam.color;
+        ctx.globalAlpha = beam.life;
+        // Horizontal & Vertical cross beam
+        ctx.beginPath();
+        ctx.moveTo(0, beam.y); ctx.lineTo(canvas.width, beam.y);
+        ctx.moveTo(beam.x, 0); ctx.lineTo(beam.x, canvas.height);
+        ctx.stroke();
+        ctx.restore();
+
+        beam.life -= 0.05;
+        if (beam.life <= 0) cosmicLasers.splice(i, 1);
+      }
+
+      // Snake Body Trail Sparkles
+      if (gameStarted && !gameOver) {
+        snake.forEach((seg, idx) => {
+          if (Math.random() < 0.4) {
+            particles.push({
+              x: seg.x * GRID_SIZE + Math.random() * GRID_SIZE,
+              y: seg.y * GRID_SIZE + Math.random() * GRID_SIZE,
+              vx: (Math.random() - 0.5) * 2,
+              vy: (Math.random() - 0.5) * 2,
+              life: 0.7,
+              decay: 0.04,
+              color: `hsl(${(rainbowHue + idx * 18) % 360}, 100%, 70%)`,
+              size: Math.random() * 4 + 2
+            });
+          }
+        });
+      }
+
+      // Draw All Food Arsenals
+      foods.forEach(f => {
+        const fx = f.x * GRID_SIZE + GRID_SIZE / 2;
+        const fy = f.y * GRID_SIZE + GRID_SIZE / 2;
+        const pulse = Math.sin((timestamp * 0.012) + f.phase) * 5;
+        const r = Math.max(4, GRID_SIZE / 2 - 2 + pulse);
+        const col = getFoodColor(f.type);
+
+        ctx.save();
+        ctx.shadowBlur = 35 + pulse * 3;
+        ctx.shadowColor = col;
+
+        // Rotating Energy Ring
+        ctx.strokeStyle = col;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(fx, fy, r + 6 + pulse, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Pulsing Core
+        ctx.fillStyle = col;
+        ctx.beginPath();
+        ctx.arc(fx, fy, r, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Blazing White Sun Core
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(fx - r * 0.25, fy - r * 0.25, r * 0.4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Extra icon on top of food
+        ctx.font = '12px Orbitron';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        let symbol = '★';
+        if (f.type === 'nuke') symbol = '☢';
+        if (f.type === 'blackhole') symbol = '✦';
+        if (f.type === 'laser') symbol = '⚡';
+        ctx.fillStyle = '#000';
+        ctx.fillText(symbol, fx, fy + 1);
+        ctx.restore();
+      });
+
+      // Draw Snake (Glowing Dragon with Laser Eyes)
+      snake.forEach((seg, i) => {
+        const px = seg.x * GRID_SIZE;
+        const py = seg.y * GRID_SIZE;
+        const segHue = (rainbowHue + i * 14) % 360;
+        const segColor = feverActive ? `hsl(${(rainbowHue + i * 25) % 360}, 100%, 65%)` : `hsl(${segHue}, 100%, 60%)`;
+
+        ctx.save();
+        ctx.shadowBlur = i === 0 ? 40 : 20;
+        ctx.shadowColor = segColor;
+
+        ctx.fillStyle = i === 0 ? '#ffffff' : segColor;
+        ctx.beginPath();
+        ctx.roundRect(px + 2, py + 2, GRID_SIZE - 4, GRID_SIZE - 4, 9);
+        ctx.fill();
+
+        // Inner core
+        ctx.fillStyle = i === 0 ? segColor : '#ffffff';
+        ctx.beginPath();
+        ctx.arc(px + GRID_SIZE / 2, py + GRID_SIZE / 2, i === 0 ? 5 : 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Head Eyes
+        if (i === 0) {
+          ctx.fillStyle = '#ff0033';
+          ctx.shadowColor = '#ff0033';
+          ctx.shadowBlur = 20;
+          let e1 = { x: px + 8, y: py + 8 };
+          let e2 = { x: px + GRID_SIZE - 8, y: py + 8 };
+          if (direction.x === 1) {
+            e1 = { x: px + GRID_SIZE - 8, y: py + 8 };
+            e2 = { x: px + GRID_SIZE - 8, y: py + GRID_SIZE - 8 };
+          } else if (direction.x === -1) {
+            e1 = { x: px + 8, y: py + 8 };
+            e2 = { x: px + 8, y: py + GRID_SIZE - 8 };
+          } else if (direction.y === 1) {
+            e1 = { x: px + 8, y: py + GRID_SIZE - 8 };
+            e2 = { x: px + GRID_SIZE - 8, y: py + GRID_SIZE - 8 };
+          }
+          ctx.beginPath();
+          ctx.arc(e1.x, e1.y, 4, 0, Math.PI * 2);
+          ctx.arc(e2.x, e2.y, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      });
+
+      // Draw Lightning Bolts
+      for (let i = lightningBolts.length - 1; i >= 0; i--) {
+        const bolt = lightningBolts[i];
+        ctx.save();
+        ctx.strokeStyle = bolt.color;
+        ctx.lineWidth = 4 * bolt.life;
+        ctx.shadowBlur = 30;
+        ctx.shadowColor = bolt.color;
+        ctx.globalAlpha = bolt.life;
+        ctx.beginPath();
+        bolt.segments.forEach(seg => {
+          ctx.moveTo(seg.x1, seg.y1);
+          ctx.lineTo(seg.x2, seg.y2);
+        });
+        ctx.stroke();
+        ctx.restore();
+
+        bolt.life -= 0.07;
+        if (bolt.life <= 0) lightningBolts.splice(i, 1);
+      }
+
+      // Draw Shockwaves
+      for (let i = shockwaves.length - 1; i >= 0; i--) {
+        const sw = shockwaves[i];
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
+        ctx.strokeStyle = sw.color;
+        ctx.lineWidth = 6 * sw.opacity;
+        ctx.globalAlpha = sw.opacity;
+        ctx.shadowBlur = 35;
+        ctx.shadowColor = sw.color;
+        ctx.stroke();
+        ctx.restore();
+
+        sw.radius += 10;
+        sw.opacity -= 0.035;
+        if (sw.opacity <= 0 || sw.radius >= sw.maxRadius) shockwaves.splice(i, 1);
+      }
+
+      // Draw Particles
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vx *= 0.94;
+        p.vy *= 0.94;
+        p.life -= p.decay;
+
+        if (p.life <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.globalAlpha = p.life;
+        ctx.fillStyle = p.color;
+        ctx.shadowBlur = 18;
+        ctx.shadowColor = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, Math.max(1, p.size * p.life), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // Draw Floating Points & Announcements
+      for (let i = floatingTexts.length - 1; i >= 0; i--) {
+        const ft = floatingTexts[i];
+        ft.y += ft.vy;
+        ft.life -= ft.decay;
+
+        if (ft.life <= 0) {
+          floatingTexts.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.globalAlpha = ft.life;
+        ctx.font = `900 ${Math.round(24 * ft.scale)}px 'Black Ops One', sans-serif`;
+        ctx.fillStyle = ft.color;
+        ctx.shadowBlur = 25;
+        ctx.shadowColor = ft.color;
+        ctx.textAlign = 'center';
+        ctx.fillText(ft.text, ft.x, ft.y);
+        ctx.restore();
+      }
+
+      // OVERLAY MENUS
+      if (!gameStarted && !gameOver) {
+        ctx.save();
+        ctx.fillStyle = 'rgba(2, 0, 10, 0.85)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.font = '900 36px "Black Ops One", sans-serif';
+        ctx.fillStyle = '#00ffff';
+        ctx.shadowBlur = 40;
+        ctx.shadowColor = '#00ffff';
+        ctx.textAlign = 'center';
+        ctx.fillText('⚡ ENGAGE APOCALYPSE ⚡', canvas.width / 2, canvas.height / 2 - 25);
+
+        ctx.font = '700 16px "Orbitron", sans-serif';
+        ctx.fillStyle = '#ff0055';
+        ctx.shadowColor = '#ff0055';
+        ctx.fillText('PRESS ANY ARROW OR WASD TO IGNITE', canvas.width / 2, canvas.height / 2 + 25);
+        ctx.restore();
+      } else if (gameOver) {
+        ctx.save();
+        ctx.fillStyle = 'rgba(10, 0, 5, 0.88)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.font = '900 48px "Black Ops One", sans-serif';
+        ctx.fillStyle = '#ff0033';
+        ctx.shadowBlur = 50;
+        ctx.shadowColor = '#ff0033';
+        ctx.textAlign = 'center';
+        ctx.fillText('TOTAL EXTINCTION', canvas.width / 2, canvas.height / 2 - 40);
+
+        ctx.font = '900 26px "Orbitron", sans-serif';
+        ctx.fillStyle = '#ffee00';
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = '#ffee00';
+        ctx.fillText(`FINAL SCORE: ${score}`, canvas.width / 2, canvas.height / 2 + 10);
+
+        ctx.font = '700 15px "Orbitron", sans-serif';
+        ctx.fillStyle = '#00ffff';
+        ctx.shadowColor = '#00ffff';
+        ctx.fillText('PRESS SPACE / ENTER TO RESPAWN', canvas.width / 2, canvas.height / 2 + 55);
+        ctx.restore();
+      }
+
+      ctx.restore();
+    }
+
+    /* =========================================================================
+       7. INPUT HANDLING
+       ========================================================================= */
+    function handleAction(key) {
+      initAudio();
+
+      if (gameOver && (key === ' ' || key === 'Enter')) {
+        resetGame();
+        return;
+      }
+
+      let newDir = null;
+      if (key === 'ArrowUp' || key === 'w' || key === 'W') newDir = { x: 0, y: -1 };
+      else if (key === 'ArrowDown' || key === 's' || key === 'S') newDir = { x: 0, y: 1 };
+      else if (key === 'ArrowLeft' || key === 'a' || key === 'A') newDir = { x: -1, y: 0 };
+      else if (key === 'ArrowRight' || key === 'd' || key === 'D') newDir = { x: 1, y: 0 };
+
+      if (newDir) {
+        if (!gameStarted && !gameOver) {
+          gameStarted = true;
+          triggerScreamer('⚡ OVERDRIVE ENGAGED ⚡', '#00ffff');
+        }
+        if (newDir.x !== -direction.x || newDir.y !== -direction.y) {
+          if (newDir.x !== direction.x || newDir.y !== direction.y) {
+            playExtremeSound('turn');
+          }
+          nextDirection = newDir;
+        }
+      }
+    }
+
+    window.addEventListener('keydown', (e) => {
+      const allowed = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'w', 'a', 's', 'd', 'W', 'A', 'S', 'D', 'Enter'];
+      if (allowed.includes(e.key)) {
+        e.preventDefault();
+        handleAction(e.key);
+      }
+    });
+
+    document.querySelectorAll('.touch-btn').forEach((btn) => {
+      btn.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        handleAction(btn.getAttribute('data-key'));
+      });
+    });
+
+    resetGame();
+    requestAnimationFrame(renderLoop);
+  </script>
+</body>
+</html>
