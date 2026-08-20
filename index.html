@@ -1744,6 +1744,12 @@
         return;
       }
 
+      if (!gameStarted && !gameOver && (key === ' ' || key === 'Enter')) {
+        gameStarted = true;
+        triggerScreamer('⚡ OVERDRIVE ENGAGED ⚡', '#00ffff');
+        return;
+      }
+
       let newDir = null;
       if (key === 'ArrowUp' || key === 'w' || key === 'W') newDir = { x: 0, y: -1 };
       else if (key === 'ArrowDown' || key === 's' || key === 'S') newDir = { x: 0, y: 1 };
