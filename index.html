@@ -909,15 +909,13 @@
     // Graphics Quality Setting (High / Low)
     let lowGraphics = localStorage.getItem('hyper_snake_low_gfx') === 'true';
 
+    // Applies the current quality setting to the DOM and persists it. Runs during
+    // init, before the FX buffers exist, so it must not touch them.
     function updateGraphicsMode() {
       if (lowGraphics) {
         document.body.classList.add('low-gfx');
         gfxToggleBtn.textContent = 'LOW';
         gfxToggleBtn.classList.add('low');
-        particles = [];
-        shockwaves = [];
-        lightningBolts = [];
-        cosmicLasers = [];
       } else {
         document.body.classList.remove('low-gfx');
         gfxToggleBtn.textContent = 'ULTRA';
@@ -929,6 +927,13 @@
     gfxToggleBtn.addEventListener('click', () => {
       lowGraphics = !lowGraphics;
       updateGraphicsMode();
+      if (lowGraphics) {
+        // Drop FX already in flight so they don't linger on screen.
+        particles = [];
+        shockwaves = [];
+        lightningBolts = [];
+        cosmicLasers = [];
+      }
       triggerScreamer(lowGraphics ? '⚡ LOW GFX MODE ⚡' : '🔥 ULTRA OVERKILL GFX 🔥', lowGraphics ? '#00ff66' : '#00ffff');
     });
 
