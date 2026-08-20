@@ -1410,6 +1410,8 @@
 
     // Camera & Screen Distortions
     let screenShake = 0;
+    // RGB split, in pixels, applied to the whole rig as a pair of drop-shadows.
+    // Spiked by the heavy pickups and by death, then decayed like the flash.
     let chromaticAberration = 0;
     let cameraZoom = 1;
     let cameraRotate = 0;
@@ -1435,6 +1437,7 @@
 
       screenShake = 0;
       flashIntensity = 0;
+      chromaticAberration = 0;
       eatPulse = -1;
       cameraZoom = 1;
       cameraRotate = 0;
@@ -1717,6 +1720,7 @@
           playExtremeSound('eat_blackhole');
           basePoints = 150;
           screenShake = 45;
+          chromaticAberration = 8;
           cameraZoom = 1.25;
           flashIntensity = 0.9;
           rumbleGamepad(450, 0.7, 1.0);
@@ -1759,6 +1763,7 @@
           playExtremeSound('eat_nuke');
           basePoints = 100;
           screenShake = 55;
+          chromaticAberration = 11;
           cameraRotate = (Math.random() - 0.5) * 0.25;
           cameraZoom = 1.2;
           flashIntensity = 1.0;
@@ -1846,6 +1851,7 @@
       triggerScreamer('⚡ RAINBOW FEVER ⚡', '#ffee00');
       screenShake = 50;
       flashIntensity = 0.8;
+      chromaticAberration = 7;
       rumbleGamepad(400, 0.8, 0.8);
     }
 
@@ -1857,6 +1863,7 @@
       playExtremeSound('eat_nuke');
       screenShake = 80;
       flashIntensity = 1.0;
+      chromaticAberration = 14;
       cameraZoom = 1.3;
       cameraRotate = 0.3;
       triggerScreamer('💀 CRITICAL DESTRUCTION 💀', '#ff0033');
@@ -2003,6 +2010,21 @@
         flashIntensity *= decay(0.82);
       }
 
+      // Chromatic aberration. Two opposed drop-shadows on the rig is a cheap
+      // stand-in for a real channel split and it runs on the compositor.
+      // Suppressed under reduced motion even in ULTRA, same as the strobes.
+      if (!lowGraphics && !prefersReducedMotion && chromaticAberration > 0.2) {
+        const ca = chromaticAberration.toFixed(2);
+        writeStyle(rig, 'filter', 'aberration',
+          `drop-shadow(${ca}px 0 rgba(255, 0, 64, 0.5)) drop-shadow(-${ca}px 0 rgba(0, 224, 255, 0.5))`);
+      } else {
+        writeStyle(rig, 'filter', 'aberration', 'none');
+      }
+      if (chromaticAberration > 0) {
+        chromaticAberration *= decay(0.86);
+        if (chromaticAberration < 0.2) chromaticAberration = 0;
+      }
+
       if (!lowGraphics) {
         writeStyle(apocOverlay, 'opacity', 'apoc',
           feverActive ? (Math.sin(timestamp * 0.02) * 0.25 + 0.35) : (combo > 5 ? 0.2 : 0));
@@ -2044,6 +2066,29 @@
           ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
         }
         ctx.stroke();
+      }
+
+      // Fever warp streaks: radial speed lines pushing outward from the middle,
+      // so godmode reads as motion rather than just a colour change. Eighteen
+      // strokes, and only while fever is up.
+      if (!lowGraphics && feverActive) {
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 18; i++) {
+          const angle = (i / 18) * Math.PI * 2 + timestamp * 0.0005;
+          const from = 70 + ((timestamp * 0.45 + i * 149) % 280);
+          const len = 30 + (from - 70) * 0.4;
+          const fade = Math.max(0, 1 - (from - 70) / 280) * 0.55;
+          ctx.strokeStyle = `hsla(${Math.round((rainbowHue + i * 20) % 360)}, 100%, 72%, ${fade})`;
+          ctx.beginPath();
+          ctx.moveTo(cx + Math.cos(angle) * from, cy + Math.sin(angle) * from);
+          ctx.lineTo(cx + Math.cos(angle) * (from + len), cy + Math.sin(angle) * (from + len));
+          ctx.stroke();
+        }
+        ctx.restore();
       }
 
       // Draw Laser Beams across whole canvas
