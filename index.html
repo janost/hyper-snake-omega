@@ -1247,6 +1247,22 @@
       return sprite;
     }
 
+    // Exact colour for the solid body, so the rainbow gradient down the snake is
+    // unchanged. The glow behind it uses a hue rounded to 10deg, which keeps the
+    // sprite cache bounded and is imperceptible under an additive blur.
+    function segmentColor(i) {
+      return feverActive
+        ? `hsl(${(rainbowHue + i * 25) % 360}, 100%, 65%)`
+        : `hsl(${(rainbowHue + i * 14) % 360}, 100%, 60%)`;
+    }
+
+    function segmentGlowColor(i) {
+      const hue = (feverActive ? rainbowHue + i * 25 : rainbowHue + i * 14) % 360;
+      return `hsl(${Math.round(hue / 10) * 10}, 100%, ${feverActive ? 65 : 60}%)`;
+    }
+
+    const FOOD_SYMBOLS = { nuke: '☢', blackhole: '✦', laser: '⚡' };
+
     // SPECIAL VISUAL FX ARRAYS
     let particles = [];
     let shockwaves = [];
@@ -1870,6 +1886,26 @@
       }
 
       // Draw All Food Arsenals
+      ctx.save();
+
+      // Halo pass first, additively, so the cores below stay crisp.
+      if (!lowGraphics) {
+        ctx.globalCompositeOperation = 'lighter';
+        foods.forEach(f => {
+          const pulse = Math.sin((timestamp * 0.012) + f.phase) * 5;
+          const r = Math.max(4, GRID_SIZE / 2 - 2 + pulse) * 2.3;
+          ctx.drawImage(getGlowSprite(getFoodColor(f.type)),
+            f.x * GRID_SIZE + GRID_SIZE / 2 - r, f.y * GRID_SIZE + GRID_SIZE / 2 - r, r * 2, r * 2);
+        });
+        ctx.globalCompositeOperation = 'source-over';
+      }
+
+      // Text state is identical for every food, so it's set once, not per item.
+      ctx.font = '12px Orbitron, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.lineWidth = 3;
+
       foods.forEach(f => {
         const fx = f.x * GRID_SIZE + GRID_SIZE / 2;
         const fy = f.y * GRID_SIZE + GRID_SIZE / 2;
@@ -1877,14 +1913,9 @@
         const r = Math.max(4, GRID_SIZE / 2 - 2 + pulse);
         const col = getFoodColor(f.type);
 
-        ctx.save();
+        // Rotating Energy Ring
         if (!lowGraphics) {
-          ctx.shadowBlur = 35 + pulse * 3;
-          ctx.shadowColor = col;
-
-          // Rotating Energy Ring
           ctx.strokeStyle = col;
-          ctx.lineWidth = 3;
           ctx.beginPath();
           ctx.arc(fx, fy, r + 6 + pulse, 0, Math.PI * 2);
           ctx.stroke();
@@ -1903,30 +1934,32 @@
         ctx.fill();
 
         // Extra icon on top of food
-        ctx.font = '12px Orbitron';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        let symbol = '★';
-        if (f.type === 'nuke') symbol = '☢';
-        if (f.type === 'blackhole') symbol = '✦';
-        if (f.type === 'laser') symbol = '⚡';
         ctx.fillStyle = '#000';
-        ctx.fillText(symbol, fx, fy + 1);
-        ctx.restore();
+        ctx.fillText(FOOD_SYMBOLS[f.type] || '★', fx, fy + 1);
       });
+      ctx.restore();
 
-      // Draw Snake (Glowing Dragon with Laser Eyes)
+      // Draw Snake (Glowing Dragon with Laser Eyes). The halo used to be a
+      // ctx.shadowBlur on every segment, which is one full filter pass each: a
+      // 40-long snake cost 40 of them per frame, and it only gets worse as you
+      // grow. It's now a single additive sprite pass over the same segments.
+      ctx.save();
+      if (!lowGraphics) {
+        ctx.globalCompositeOperation = 'lighter';
+        snake.forEach((seg, i) => {
+          const r = GRID_SIZE * (i === 0 ? 1.5 : 1.1);
+          ctx.globalAlpha = i === 0 ? 0.9 : 0.55;
+          ctx.drawImage(getGlowSprite(segmentGlowColor(i)),
+            seg.x * GRID_SIZE + GRID_SIZE / 2 - r, seg.y * GRID_SIZE + GRID_SIZE / 2 - r, r * 2, r * 2);
+        });
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = 1;
+      }
+
       snake.forEach((seg, i) => {
         const px = seg.x * GRID_SIZE;
         const py = seg.y * GRID_SIZE;
-        const segHue = (rainbowHue + i * 14) % 360;
-        const segColor = feverActive ? `hsl(${(rainbowHue + i * 25) % 360}, 100%, 65%)` : `hsl(${segHue}, 100%, 60%)`;
-
-        ctx.save();
-        if (!lowGraphics) {
-          ctx.shadowBlur = i === 0 ? 40 : 20;
-          ctx.shadowColor = segColor;
-        }
+        const segColor = segmentColor(i);
 
         ctx.fillStyle = i === 0 ? '#ffffff' : segColor;
         ctx.beginPath();
@@ -1942,10 +1975,6 @@
         // Head Eyes
         if (i === 0) {
           ctx.fillStyle = '#ff0033';
-          if (!lowGraphics) {
-            ctx.shadowColor = '#ff0033';
-            ctx.shadowBlur = 20;
-          }
           let e1 = { x: px + 8, y: py + 8 };
           let e2 = { x: px + GRID_SIZE - 8, y: py + 8 };
           if (direction.x === 1) {
@@ -1963,8 +1992,8 @@
           ctx.arc(e2.x, e2.y, 4, 0, Math.PI * 2);
           ctx.fill();
         }
-        ctx.restore();
       });
+      ctx.restore();
 
       // Draw Lightning Bolts
       for (let i = lightningBolts.length - 1; i >= 0; i--) {
