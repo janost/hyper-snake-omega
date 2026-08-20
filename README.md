@@ -103,12 +103,29 @@ No MP3s. No WAV files. No network lag.
 
 ## 🎮 CONTROLS & HARDWARE SUPPORT
 
-- ⌨️ **Keyboard**: Arrow Keys or WASD to steer, Space / Enter to restart.
+- ⌨️ **Keyboard**: Arrow Keys or WASD to steer, Space / Enter to restart, **F** for fullscreen.
 - 🎮 **Xbox / Bluetooth Gamepad API**:
   - **D-Pad / Left Thumbstick**: Full 4-way navigation with analog deadzone filtering.
   - **A / X / Start button**: Start game / Instant Respawn.
   - **Dual-Rumble Haptic Feedback**: Dynamic low/high-frequency motor vibration triggers on eating, nuke detonations, laser bursts, black holes, and deaths.
 - 📱 **Touch D-Pad**: Automatic on-screen touch overlay on phones & tablets.
+
+---
+
+## 🖥️ IT SCALES
+
+The board grows to fill whatever room it has. The column takes the viewport height, the chrome takes what it needs, and the board absorbs everything left over, so there is no magic reserve to get wrong when the title reflows or the touch d-pad appears.
+
+Hit **FULL** in the HUD (or press **F**) and it reclaims the browser chrome too. Same 20x20 grid at every size — only the pixels get bigger, never the board.
+
+| viewport | board |
+|---|---|
+| 900 x 613 | 449px |
+| 1280 x 713 | 530px |
+| 1920 x 1093 | 884px |
+| 2400 x 1413 | 1100px (capped) |
+
+The canvas keeps a fixed 540x540 backing store and CSS stretches it, so every draw call still works in the coordinate space it was written for. `--board-max` is the ceiling on how far it stretches: 1100px windowed, 1500px fullscreen.
 
 ---
 

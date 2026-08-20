@@ -17,6 +17,23 @@
       --blood-red: #ff0033;
       --plasma-blue: #0088ff;
       --void-black: #000003;
+
+      /* The canvas keeps its 540x540 backing store and CSS stretches it, so these
+         decide how big the game looks. The board takes whatever vertical space is
+         left after the chrome rather than subtracting a guessed reserve: the title
+         and HUD change height as they reflow, so any fixed number is wrong at some
+         width. --board-reserve-x only bounds it horizontally, where the sidebar
+         sits. */
+      --board-reserve-x: 300px;
+      --board-max: 1100px;
+
+      /* Measured board edge and its ratio to the 540px draw space, both written by
+         refreshViewScale() once layout has settled. Used for the chrome that has to
+         track the board, and for the few things sized in screen pixels rather than
+         draw-space pixels. */
+      --board: 540px;
+      --board-scale: 1;
+      --rig-pad: calc(8px * var(--board-scale));
     }
 
     * {
@@ -100,6 +117,10 @@
     .master-wrapper {
       position: relative;
       z-index: 10;
+      /* Definite height, so .center-col can hand the rig a real box to grow into.
+         Without it the flex chain is indefinite and the canvas falls back to its
+         540px attribute size. */
+      height: 100vh;
       display: flex;
       flex-direction: row;
       align-items: center;
@@ -113,7 +134,8 @@
     /* Left Sidebar: Unlocked Achievements Tracker */
     .sidebar {
       width: 220px;
-      height: 560px;
+      height: min(var(--board), calc(100vh - 2rem));
+      min-height: 320px;
       background: rgba(10, 0, 25, 0.85);
       border: 2px solid var(--neon-cyan);
       border-radius: 14px;
@@ -191,13 +213,17 @@
       flex-direction: column;
       align-items: center;
       gap: 0.6rem;
+      height: 100%;
+      min-height: 0;
+      max-width: 100%;
     }
 
     /* Psycho header */
     .title-banner {
       font-family: 'Rubik Glitch', 'Black Ops One', cursive;
-      font-size: 2.8rem;
+      font-size: clamp(0.95rem, 3.1vw, 3.2rem);
       letter-spacing: 0.4rem;
+      white-space: nowrap;
       text-transform: uppercase;
       text-align: center;
       background: linear-gradient(180deg, #fff 0%, var(--neon-yellow) 25%, var(--neon-pink) 60%, var(--neon-cyan) 100%);
@@ -205,7 +231,11 @@
       -webkit-text-fill-color: transparent;
       filter: drop-shadow(0 0 30px #ff0055) drop-shadow(0 0 60px #00ffff);
       animation: hyperFlicker 0.25s infinite alternate;
-      line-height: 1;
+      /* The display face overshoots its em box, and the flicker keyframes scale it
+         to 1.04. At line-height 1 that clipped against the top of the viewport once
+         the layout became height-bound. */
+      line-height: 1.2;
+      padding: 0.06em 0;
     }
 
     @keyframes hyperFlicker {
@@ -217,9 +247,10 @@
     /* Top HUD Row */
     .hud-grid {
       display: grid;
-      grid-template-columns: repeat(7, 1fr);
+      grid-template-columns: repeat(8, 1fr);
       gap: 0.5rem;
-      width: 560px;
+      width: calc(var(--board) + var(--rig-pad) * 2);
+      max-width: 100%;
     }
 
     .hud-cell {
@@ -249,7 +280,8 @@
 
     .hud-lbl {
       font-size: 0.55rem;
-      letter-spacing: 2px;
+      letter-spacing: 1px;
+      white-space: nowrap;
       color: #00ffff;
       font-weight: 900;
       text-transform: uppercase;
@@ -380,7 +412,8 @@
 
     /* Multi-tier Fever Mode Energy Bar */
     .fever-bar-wrap {
-      width: 560px;
+      width: calc(var(--board) + var(--rig-pad) * 2);
+      max-width: 100%;
       height: 14px;
       background: rgba(0, 0, 0, 0.8);
       border: 2px solid var(--neon-yellow);
@@ -420,7 +453,12 @@
     /* Viewport Frame with Insane Shaders & Borders */
     #rig-container {
       position: relative;
-      padding: 8px;
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--rig-pad);
       border-radius: 18px;
       background: linear-gradient(45deg, #ff0055, #bd00ff, #00ffff, #ffee00, #00ff66, #ff0055);
       background-size: 600% 600%;
@@ -440,6 +478,16 @@
 
     canvas#game {
       display: block;
+      /* Square, as tall as the rig lets it be, and never wider than the space
+         left beside the sidebar. */
+      height: 100%;
+      width: auto;
+      aspect-ratio: 1 / 1;
+      /* Both axes take the same ceiling. Capping only max-width would leave the
+         definite height untouched and the board would stop being square on a
+         narrow viewport; aspect-ratio only derives the axis that is auto. */
+      max-height: min(var(--board-max), calc(100vw - var(--board-reserve-x)));
+      max-width: min(var(--board-max), calc(100vw - var(--board-reserve-x)));
       background: #000;
       border-radius: 12px;
       box-shadow: inset 0 0 60px rgba(0,0,0,0.9);
@@ -448,12 +496,12 @@
     /* Screen overlays */
     .vignette-crt {
       position: absolute;
-      inset: 8px;
+      inset: var(--rig-pad);
       border-radius: 12px;
       background: 
         radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.85) 100%),
         linear-gradient(rgba(255,255,255,0) 50%, rgba(0, 0, 0, 0.5) 50%);
-      background-size: 100% 100%, 100% 4px;
+      background-size: 100% 100%, 100% calc(4px * var(--board-scale));
       pointer-events: none;
       z-index: 8;
     }
@@ -540,11 +588,16 @@
     .right { grid-column: 3; grid-row: 2; }
 
     @media (max-width: 950px) {
+      /* No sidebar, so the board gets the full width. */
+      :root { --board-reserve-x: 24px; }
       .sidebar { display: none; }
-      .hud-grid { width: 100%; max-width: 480px; }
-      .fever-bar-wrap { width: 100%; max-width: 480px; }
-      canvas#game { width: 340px; height: 340px; }
-      .title-banner { font-size: 2rem; }
+    }
+
+    /* Fullscreen hands back the vertical space the browser chrome was using, which
+       the flex layout picks up on its own. All that's needed here is permission to
+       go past the windowed ceiling. */
+    :root:fullscreen {
+      --board-max: 1500px;
     }
 
     @media (hover: none) and (pointer: coarse) {
@@ -607,6 +660,10 @@
         <div class="hud-cell">
           <span class="hud-lbl">GFX</span>
           <button id="gfx-toggle" class="gfx-btn" title="Toggle Graphics Quality (High / Low)">ULTRA</button>
+        </div>
+        <div class="hud-cell">
+          <span class="hud-lbl">SCREEN</span>
+          <button id="fs-toggle" class="gfx-btn" title="Toggle Fullscreen (F)">FULL</button>
         </div>
       </div>
 
@@ -1062,7 +1119,10 @@
       bgCanvas.width = window.innerWidth;
       bgCanvas.height = window.innerHeight;
     }
-    window.addEventListener('resize', resizeBgCanvas);
+    window.addEventListener('resize', () => {
+      resizeBgCanvas();
+      refreshViewScale();
+    });
     resizeBgCanvas();
 
     for (let i = 0; i < 60; i++) {
@@ -1091,6 +1151,63 @@
     const padEl = document.getElementById('pad-val');
     const comboCell = document.getElementById('combo-cell');
     const gfxToggleBtn = document.getElementById('gfx-toggle');
+    const fsToggleBtn = document.getElementById('fs-toggle');
+
+    /* =========================================================================
+       VIEW SCALING
+       ========================================================================= */
+    // The canvas keeps its 540x540 backing store and CSS stretches it to whatever
+    // --board resolves to, so every draw call still works in the coordinate space
+    // it was written for. This is the one number relating screen pixels to
+    // draw-space pixels, for the few things measured in the former: the shake
+    // amplitude on the rig, and the CRT scanline pitch.
+    const VIEW_SIZE = canvas.width;
+    let viewScale = 1;
+
+    function refreshViewScale() {
+      const shown = canvas.clientWidth;
+      if (!shown) return;                      // display:none, nothing to measure
+      viewScale = shown / VIEW_SIZE;
+      const root = document.documentElement.style;
+      root.setProperty('--board', shown + 'px');
+      root.setProperty('--board-scale', viewScale.toFixed(4));
+    }
+
+    /* =========================================================================
+       FULLSCREEN
+       ========================================================================= */
+    const canFullscreen = !!(document.documentElement.requestFullscreen && document.exitFullscreen);
+
+    function isFullscreen() {
+      return !!document.fullscreenElement;
+    }
+
+    function toggleFullscreen() {
+      if (!canFullscreen) return;
+      if (isFullscreen()) {
+        document.exitFullscreen().catch(() => {});
+      } else {
+        // The root element, not the rig: the point is for the sidebar and HUD to
+        // come along, not just the board.
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+    }
+
+    if (canFullscreen) {
+      fsToggleBtn.addEventListener('click', toggleFullscreen);
+      document.addEventListener('fullscreenchange', () => {
+        const on = isFullscreen();
+        fsToggleBtn.textContent = on ? 'EXIT' : 'FULL';
+        fsToggleBtn.classList.toggle('low', on);
+        // The viewport changes size after this fires, so measure on the next frame.
+        requestAnimationFrame(refreshViewScale);
+      });
+    } else {
+      // iOS Safari has no Fullscreen API outside <video>; don't offer a dead button.
+      fsToggleBtn.textContent = 'N/A';
+      fsToggleBtn.disabled = true;
+    }
+
 
     // Graphics Quality Setting (High / Low). With no stored preference we take
     // the cue from the OS: prefers-reduced-motion means start in LOW, which is
@@ -1985,8 +2102,11 @@
 
       let shakeX = 0, shakeY = 0;
       if (!lowGraphics && screenShake > 0) {
-        shakeX = (Math.random() - 0.5) * screenShake * 2.5;
-        shakeY = (Math.random() - 0.5) * screenShake * 2.5;
+        // Amplitude is authored against a 540px board; without viewScale a shake
+        // that reads as violent at default size is a twitch at fullscreen.
+        const amplitude = screenShake * 2.5 * viewScale;
+        shakeX = (Math.random() - 0.5) * amplitude;
+        shakeY = (Math.random() - 0.5) * amplitude;
       }
       if (screenShake > 0) {
         screenShake *= decay(0.88);
@@ -2505,6 +2625,12 @@
     }
 
     window.addEventListener('keydown', (e) => {
+      if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        toggleFullscreen();
+        return;
+      }
+
       const allowed = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'w', 'a', 's', 'd', 'W', 'A', 'S', 'D', 'Enter'];
       if (allowed.includes(e.key)) {
         e.preventDefault();
@@ -2520,6 +2646,7 @@
     });
 
     resetGame();
+    refreshViewScale();
     requestAnimationFrame(renderLoop);
   </script>
 </body>
