@@ -601,10 +601,36 @@
        ========================================================================= */
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let actx = null;
+    // Every voice routes through this rather than straight out, so stacked sounds
+    // (nuke noise + sub + drums + bass) get limited instead of clipping.
+    let masterBus = null;
+    // One shared noise buffer for the snare and the nuke blast. Regenerating it
+    // per hit churned ~6600 floats every 800ms for the life of the page.
+    let noiseBuffer = null;
+
+    function getNoiseBuffer() {
+      if (!noiseBuffer) {
+        const len = Math.floor(actx.sampleRate * 1.2);
+        noiseBuffer = actx.createBuffer(1, len, actx.sampleRate);
+        const d = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      }
+      return noiseBuffer;
+    }
 
     function initAudio() {
       if (!actx) {
         actx = new AudioContext();
+        masterBus = actx.createGain();
+        masterBus.gain.value = 0.8;
+        const limiter = actx.createDynamicsCompressor();
+        limiter.threshold.value = -6;
+        limiter.knee.value = 6;
+        limiter.ratio.value = 12;
+        limiter.attack.value = 0.003;
+        limiter.release.value = 0.15;
+        masterBus.connect(limiter);
+        limiter.connect(actx.destination);
         startSynthSoundtrack();
       }
       if (actx.state === 'suspended') actx.resume();
@@ -634,28 +660,26 @@
           kickGain.gain.setValueAtTime(feverActive ? 0.6 : 0.4, t);
           kickGain.gain.linearRampToValueAtTime(0.001, t + 0.14);
           kickOsc.connect(kickGain);
-          kickGain.connect(actx.destination);
+          kickGain.connect(masterBus);
           kickOsc.start(t);
           kickOsc.stop(t + 0.14);
         }
 
         // Snare / Clap on step 4 & 12
         if (musicBeat % 8 === 4) {
-          const noiseBuffer = actx.createBuffer(1, actx.sampleRate * 0.15, actx.sampleRate);
-          const out = noiseBuffer.getChannelData(0);
-          for (let i = 0; i < out.length; i++) out[i] = (Math.random() * 2 - 1) * 0.3;
           const noiseSrc = actx.createBufferSource();
-          noiseSrc.buffer = noiseBuffer;
+          noiseSrc.buffer = getNoiseBuffer();
           const filter = actx.createBiquadFilter();
           filter.type = 'highpass';
           filter.frequency.setValueAtTime(1000, t);
           const noiseGain = actx.createGain();
-          noiseGain.gain.setValueAtTime(0.3, t);
+          noiseGain.gain.setValueAtTime(0.09, t);
           noiseGain.gain.linearRampToValueAtTime(0.001, t + 0.15);
           noiseSrc.connect(filter);
           filter.connect(noiseGain);
-          noiseGain.connect(actx.destination);
+          noiseGain.connect(masterBus);
           noiseSrc.start(t);
+          noiseSrc.stop(t + 0.15);
         }
 
         // Heavy Rolling Acid Bass
@@ -679,7 +703,7 @@
 
           osc.connect(flt);
           flt.connect(gain);
-          gain.connect(actx.destination);
+          gain.connect(masterBus);
           osc.start(t);
           osc.stop(t + 0.15);
         }
@@ -702,7 +726,7 @@
         gain.gain.setValueAtTime(0.3, t);
         gain.gain.linearRampToValueAtTime(0.01, t + 0.12);
         osc.connect(gain);
-        gain.connect(actx.destination);
+        gain.connect(masterBus);
         osc.start(t);
         osc.stop(t + 0.12);
       } else if (type === 'eat_laser') {
@@ -715,16 +739,13 @@
         gain.gain.setValueAtTime(0.4, t);
         gain.gain.linearRampToValueAtTime(0.01, t + 0.2);
         osc.connect(gain);
-        gain.connect(actx.destination);
+        gain.connect(masterBus);
         osc.start(t);
         osc.stop(t + 0.2);
       } else if (type === 'eat_nuke') {
         // Thermonuclear bomb explosion noise + sub drop
-        const buf = actx.createBuffer(1, actx.sampleRate * 1.2, actx.sampleRate);
-        const d = buf.getChannelData(0);
-        for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
         const noise = actx.createBufferSource();
-        noise.buffer = buf;
+        noise.buffer = getNoiseBuffer();
         const flt = actx.createBiquadFilter();
         flt.type = 'lowpass';
         flt.frequency.setValueAtTime(1200, t);
@@ -734,8 +755,9 @@
         g.gain.linearRampToValueAtTime(0.01, t + 1.2);
         noise.connect(flt);
         flt.connect(g);
-        g.connect(actx.destination);
+        g.connect(masterBus);
         noise.start(t);
+        noise.stop(t + 1.2);
 
         // Sub blast
         const sub = actx.createOscillator();
@@ -746,7 +768,7 @@
         subG.gain.setValueAtTime(0.7, t);
         subG.gain.linearRampToValueAtTime(0.01, t + 0.8);
         sub.connect(subG);
-        subG.connect(actx.destination);
+        subG.connect(masterBus);
         sub.start(t);
         sub.stop(t + 0.8);
       } else if (type === 'eat_blackhole') {
@@ -759,7 +781,7 @@
         g.gain.setValueAtTime(0.4, t);
         g.gain.linearRampToValueAtTime(0.01, t + 0.5);
         osc.connect(g);
-        g.connect(actx.destination);
+        g.connect(masterBus);
         osc.start(t);
         osc.stop(t + 0.5);
       } else if (type === 'turn') {
@@ -771,7 +793,7 @@
         g.gain.setValueAtTime(0.08, t);
         g.gain.linearRampToValueAtTime(0.001, t + 0.04);
         osc.connect(g);
-        g.connect(actx.destination);
+        g.connect(masterBus);
         osc.start(t);
         osc.stop(t + 0.04);
       } else if (type === 'fever_activate') {
@@ -784,7 +806,7 @@
           g.gain.setValueAtTime(0.25, t + idx * 0.03);
           g.gain.linearRampToValueAtTime(0.001, t + idx * 0.03 + 0.4);
           o.connect(g);
-          g.connect(actx.destination);
+          g.connect(masterBus);
           o.start(t + idx * 0.03);
           o.stop(t + idx * 0.03 + 0.4);
         });
@@ -797,7 +819,7 @@
           g.gain.setValueAtTime(0.2, t + i * 0.07);
           g.gain.linearRampToValueAtTime(0.001, t + i * 0.07 + 0.15);
           o.connect(g);
-          g.connect(actx.destination);
+          g.connect(masterBus);
           o.start(t + i * 0.07);
           o.stop(t + i * 0.07 + 0.15);
         });
