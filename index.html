@@ -1197,15 +1197,29 @@
     function spawnFood(forcedType = null) {
       if (foods.length >= 5) return;
 
-      let pos;
-      while (true) {
-        pos = {
-          x: Math.floor(Math.random() * TILE_COUNT),
-          y: Math.floor(Math.random() * TILE_COUNT)
-        };
-        const hitsSnake = snake.some(s => s.x === pos.x && s.y === pos.y);
-        const hitsFood = foods.some(f => f.x === pos.x && f.y === pos.y);
-        if (!hitsSnake && !hitsFood) break;
+      // Rejection sampling is cheap while the board is mostly empty, but it never
+      // terminates once the snake fills it. Bail to an explicit free-cell list.
+      const occupied = new Set();
+      snake.forEach(s => occupied.add(s.y * TILE_COUNT + s.x));
+      foods.forEach(f => occupied.add(f.y * TILE_COUNT + f.x));
+      if (occupied.size >= TILE_COUNT * TILE_COUNT) return;
+
+      let pos = null;
+      for (let attempt = 0; attempt < 60; attempt++) {
+        const x = Math.floor(Math.random() * TILE_COUNT);
+        const y = Math.floor(Math.random() * TILE_COUNT);
+        if (!occupied.has(y * TILE_COUNT + x)) {
+          pos = { x, y };
+          break;
+        }
+      }
+      if (!pos) {
+        const free = [];
+        for (let i = 0; i < TILE_COUNT * TILE_COUNT; i++) {
+          if (!occupied.has(i)) free.push(i);
+        }
+        const cell = free[Math.floor(Math.random() * free.length)];
+        pos = { x: cell % TILE_COUNT, y: Math.floor(cell / TILE_COUNT) };
       }
 
       const roll = Math.random();
