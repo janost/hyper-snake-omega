@@ -1726,14 +1726,39 @@
       shockwaves.push({ x, y, radius: 10, maxRadius, opacity: 1, color });
     }
 
+    // `scale` sizes the label without reference to the board, so the big payouts
+    // used to run off both ends: "☢️ NUCLEAR OVERKILL +2700!" measures 927px on a
+    // 540px canvas and rendered as "UCLEAR OVERKILL". Shrink it to fit, then clamp
+    // x so a label earned against an edge stays on the canvas. Resolved px is
+    // stored instead of the scale so the draw call can't disagree with the fit.
+    const FLOAT_TEXT_MARGIN = 8;
+
     function addFloatingText(text, x, y, color, scale = 1.2) {
+      const maxWidth = canvas.width - FLOAT_TEXT_MARGIN * 2;
+      let size = Math.round(24 * scale);
+
+      ctx.save();
+      ctx.font = `900 ${size}px 'Black Ops One', sans-serif`;
+      let width = ctx.measureText(text).width;
+      if (width > maxWidth) {
+        size = Math.max(10, Math.floor(size * maxWidth / width));
+        ctx.font = `900 ${size}px 'Black Ops One', sans-serif`;
+        width = ctx.measureText(text).width;
+      }
+      ctx.restore();
+
+      const half = width / 2;
+      const minX = FLOAT_TEXT_MARGIN + half;
+      const maxX = canvas.width - FLOAT_TEXT_MARGIN - half;
       floatingTexts.push({
-        text, x, y,
+        text,
+        x: Math.max(minX, Math.min(maxX, x)),
+        y,
         vy: -3.5,
         life: 1.0,
         decay: 0.016,
         color,
-        scale
+        size
       });
     }
 
@@ -2528,7 +2553,7 @@
 
         ctx.save();
         ctx.globalAlpha = ft.life;
-        ctx.font = `900 ${Math.round(24 * ft.scale)}px 'Black Ops One', sans-serif`;
+        ctx.font = `900 ${ft.size}px 'Black Ops One', sans-serif`;
         ctx.fillStyle = ft.color;
         if (!lowGraphics) {
           ctx.shadowBlur = 25;
