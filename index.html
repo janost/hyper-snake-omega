@@ -1146,7 +1146,9 @@
     let floatingTexts = [];
     let lightningBolts = [];
     let cosmicLasers = [];
-    let blackHoleSingularity = null; // Blackhole gravity well
+    // Timers from the death animation, cleared on reset so a restart mid-explosion
+    // doesn't spray the old snake's debris across the new game.
+    let deathTimers = [];
 
     // Camera & Screen Distortions
     let screenShake = 0;
@@ -1160,6 +1162,17 @@
     bestEl.textContent = highScore;
 
     function resetGame() {
+      deathTimers.forEach(clearTimeout);
+      deathTimers = [];
+
+      // Death leaves the camera mid-shake at zoom 1.3 / rotate 0.3; without this
+      // the fresh game starts inside the old explosion.
+      screenShake = 0;
+      flashIntensity = 0;
+      cameraZoom = 1;
+      cameraRotate = 0;
+      lastTick = performance.now();
+
       snake = [
         { x: 10, y: 10 },
         { x: 10, y: 11 },
@@ -1186,7 +1199,6 @@
       lightningBolts = [];
       cosmicLasers = [];
       foods = [];
-      blackHoleSingularity = null;
 
       spawnFood('normal');
       spawnFood('super');
@@ -1523,7 +1535,7 @@
 
       // Sequentially vaporize every single segment in an apocalyptic fireworks chain
       snake.forEach((seg, idx) => {
-        setTimeout(() => {
+        deathTimers.push(setTimeout(() => {
           const sx = seg.x * GRID_SIZE + GRID_SIZE / 2;
           const sy = seg.y * GRID_SIZE + GRID_SIZE / 2;
           if (!lowGraphics) {
@@ -1532,7 +1544,7 @@
             triggerLightning(sx, sy, Math.random() * canvas.width, Math.random() * canvas.height, '#ff0033');
             screenShake = Math.max(screenShake, 20);
           }
-        }, idx * 25);
+        }, idx * 25));
       });
     }
 
