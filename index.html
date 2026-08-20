@@ -570,7 +570,7 @@
   <div class="master-wrapper">
     <!-- Sidebar: Trophy Gallery -->
     <div class="sidebar">
-      <div class="sidebar-title">🔥 ACHIEVEMENTS (<span id="achieve-count">0/25</span>)</div>
+      <div class="sidebar-title">🔥 ACHIEVEMENTS (<span id="achieve-count">0/43</span>)</div>
       <div class="achievements-list" id="achieve-list"></div>
     </div>
 
@@ -943,7 +943,25 @@
       { id: 'perpetual', icon: '🔁', title: 'PERPETUAL OVERDRIVE', desc: 'Trigger Fever 3 times in one run' },
       { id: 'phase_shifter', icon: '🌀', title: 'PHASE SHIFTER', desc: 'Warp through the grid edge during Fever' },
       { id: 'cold_blooded', icon: '🧊', title: 'COLD BLOODED', desc: 'Score 1,000 before ever triggering Fever' },
-      { id: 'long_haul', icon: '⏳', title: 'LONG HAUL', desc: 'Survive a single run for 2 minutes' }
+      { id: 'long_haul', icon: '⏳', title: 'LONG HAUL', desc: 'Survive a single run for 2 minutes' },
+      { id: 'combo_30', icon: '🌠', title: 'COMET CHAIN', desc: 'Reach a 30x combo streak' },
+      { id: 'score_25k', icon: '🏦', title: 'COSMIC OLIGARCH (25K)', desc: 'Score over 25,000 points' },
+      { id: 'score_50k', icon: '🪐', title: 'HEAT DEATH SURVIVOR (50K)', desc: 'Score over 50,000 points' },
+      { id: 'planet_girdle', icon: '🪢', title: 'PLANET GIRDLE', desc: 'Grow the snake to length 100' },
+      { id: 'mutually_assured', icon: '💣', title: 'MUTUALLY ASSURED', desc: 'Detonate 10 nukes in one run' },
+      { id: 'gravity_addict', icon: '🧲', title: 'GRAVITY ADDICT', desc: 'Absorb 5 singularities in one run' },
+      { id: 'beam_saturation', icon: '🎯', title: 'BEAM SATURATION', desc: 'Fire 15 laser cross-beams in one run' },
+      { id: 'fever_dream', icon: '🥵', title: 'FEVER DREAM', desc: 'Trigger Fever 5 times in one run' },
+      { id: 'drifter', icon: '🌪️', title: 'DIMENSIONAL DRIFTER', desc: 'Warp the grid edge 10 times in one run' },
+      { id: 'cartographer', icon: '🗺️', title: 'CARTOGRAPHER', desc: 'Feed from all four corners of the grid in one run' },
+      { id: 'straight_shooter', icon: '🏹', title: 'STRAIGHT SHOOTER', desc: 'Travel 20 tiles without turning' },
+      { id: 'hot_start', icon: '♨️', title: 'HOT START', desc: 'Reach a 5x combo in the first 15 seconds' },
+      { id: 'fast_money', icon: '🚄', title: 'FAST MONEY', desc: 'Score 1,000 inside 30 seconds' },
+      { id: 'marathoner', icon: '🕰️', title: 'MARATHONER', desc: 'Survive a single run for 5 minutes' },
+      { id: 'glutton', icon: '🍔', title: 'GLUTTON PRIME', desc: 'Devour 1,000 cores across all runs' },
+      { id: 'habitual', icon: '🎰', title: 'HABITUAL', desc: 'Start 50 runs' },
+      { id: 'sisyphus', icon: '💀', title: 'SISYPHUS', desc: 'Die 100 times' },
+      { id: 'omniscient', icon: '🏆', title: 'SINGULARITY COMPLETE', desc: 'Unlock every other trophy' }
     ];
 
     let unlockedAchieves = storageGetJSON('hyper_snake_achieves', {});
@@ -955,7 +973,36 @@
     let run = null;
 
     function newRun() {
-      return { nukes: 0, blackholes: 0, lasers: 0, fevers: 0, eaten: new Set(), startedAt: 0 };
+      return {
+        nukes: 0, blackholes: 0, lasers: 0, fevers: 0, warps: 0,
+        eaten: new Set(), corners: new Set(), straight: 0, startedAt: 0
+      };
+    }
+
+    // Totals that outlive a run. Kept in their own key so a schema change here
+    // can't corrupt the achievements blob.
+    const stats = storageGetJSON('hyper_snake_stats', {});
+    stats.food = stats.food || 0;
+    stats.runs = stats.runs || 0;
+    stats.deaths = stats.deaths || 0;
+
+    function saveStats() {
+      storageSet('hyper_snake_stats', JSON.stringify(stats));
+    }
+
+    // A grid cell counts as a corner if it sits in the 3x3 block at one of them.
+    // Waiting for food to land on the exact corner tile would be a coin flip
+    // stretched over hours.
+    function cornerOf(x, y) {
+      const nearLow = 2;
+      const nearHigh = TILE_COUNT - 3;
+      const left = x <= nearLow, right = x >= nearHigh;
+      const top = y <= nearLow, bottom = y >= nearHigh;
+      if (left && top) return 'tl';
+      if (right && top) return 'tr';
+      if (left && bottom) return 'bl';
+      if (right && bottom) return 'br';
+      return null;
     }
 
     function renderAchievementsSidebar() {
@@ -993,6 +1040,12 @@
         const pop = document.getElementById('achievement-popup');
         pop.classList.add('show');
         setTimeout(() => pop.classList.remove('show'), 3500);
+      }
+
+      // Recurses exactly one level: the guard stops omniscient re-entering.
+      if (id !== 'omniscient') {
+        const rest = ACHIEVEMENTS_DEF.filter(a => a.id !== 'omniscient');
+        if (rest.every(a => unlockedAchieves[a.id])) unlockAchievement('omniscient');
       }
     }
 
@@ -1491,7 +1544,11 @@
     function updateLogic() {
       if (!gameStarted || gameOver) return;
 
+      const turned = direction.x !== nextDirection.x || direction.y !== nextDirection.y;
       direction = { ...nextDirection };
+      run.straight = turned ? 0 : run.straight + 1;
+      if (run.straight >= 20) unlockAchievement('straight_shooter');
+
       const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
 
       // Wall Wrapping in FEVER MODE, or Fatal Crash in Normal Mode
@@ -1501,6 +1558,7 @@
           head.x = (head.x + TILE_COUNT) % TILE_COUNT;
           head.y = (head.y + TILE_COUNT) % TILE_COUNT;
           unlockAchievement('phase_shifter');
+          if (++run.warps >= 10) unlockAchievement('drifter');
           triggerLightning(snake[0].x * GRID_SIZE, snake[0].y * GRID_SIZE, head.x * GRID_SIZE, head.y * GRID_SIZE, '#ffee00');
         } else {
           annihilateSnake('WALL IMPACT FATALITY');
@@ -1527,6 +1585,7 @@
       if (snake.length >= 25) unlockAchievement('long_boi');
       if (snake.length >= 40) unlockAchievement('titan_len');
       if (snake.length >= 60) unlockAchievement('leviathan');
+      if (snake.length >= 100) unlockAchievement('planet_girdle');
 
       // Check Food Collisions
       let eatenIdx = -1;
@@ -1552,9 +1611,20 @@
         if (combo >= 5) unlockAchievement('combo_5');
         if (combo >= 10) unlockAchievement('combo_10');
         if (combo >= 20) unlockAchievement('combo_20');
+        if (combo >= 30) unlockAchievement('combo_30');
+        if (combo >= 5 && performance.now() - run.startedAt <= 15000) unlockAchievement('hot_start');
 
         run.eaten.add(eaten.type);
         if (FOOD_TYPES.every(t => run.eaten.has(t))) unlockAchievement('balanced_diet');
+
+        const corner = cornerOf(eaten.x, eaten.y);
+        if (corner) {
+          run.corners.add(corner);
+          if (run.corners.size === 4) unlockAchievement('cartographer');
+        }
+
+        if (++stats.food % 25 === 0) saveStats();
+        if (stats.food >= 1000) unlockAchievement('glutton');
 
         // Charge Fever Gauge
         if (!feverActive) {
@@ -1573,6 +1643,7 @@
         if (eaten.type === 'blackhole') {
           unlockAchievement('singularity');
           if (++run.blackholes >= 3) unlockAchievement('event_horizon');
+          if (run.blackholes >= 5) unlockAchievement('gravity_addict');
           playExtremeSound('eat_blackhole');
           basePoints = 150;
           screenShake = 45;
@@ -1592,6 +1663,7 @@
         } else if (eaten.type === 'nuke') {
           unlockAchievement('nuke_master');
           if (++run.nukes >= 3) unlockAchievement('fallout');
+          if (run.nukes >= 10) unlockAchievement('mutually_assured');
           playExtremeSound('eat_nuke');
           basePoints = 100;
           screenShake = 55;
@@ -1612,6 +1684,7 @@
 
         } else if (eaten.type === 'laser') {
           if (++run.lasers >= 5) unlockAchievement('beam_architect');
+          if (run.lasers >= 15) unlockAchievement('beam_saturation');
           playExtremeSound('eat_laser');
           basePoints = 60;
           screenShake = 25;
@@ -1649,6 +1722,9 @@
         if (score >= 1000) unlockAchievement('score_1k');
         if (score >= 3000) unlockAchievement('score_3k');
         if (score >= 10000) unlockAchievement('score_10k');
+        if (score >= 25000) unlockAchievement('score_25k');
+        if (score >= 50000) unlockAchievement('score_50k');
+        if (score >= 1000 && performance.now() - run.startedAt <= 30000) unlockAchievement('fast_money');
         // Fever is the easy way to a big score; this is the reward for not using it.
         if (score >= 1000 && run.fevers === 0) unlockAchievement('cold_blooded');
 
@@ -1673,6 +1749,7 @@
       feverTimeLeft = feverDuration;
       unlockAchievement('fever_starter');
       if (++run.fevers >= 3) unlockAchievement('perpetual');
+      if (run.fevers >= 5) unlockAchievement('fever_dream');
       playExtremeSound('fever_activate');
       triggerScreamer('⚡ RAINBOW FEVER ⚡', '#ffee00');
       screenShake = 50;
@@ -1682,6 +1759,9 @@
 
     function annihilateSnake(reason) {
       gameOver = true;
+      stats.deaths++;
+      saveStats();
+      if (stats.deaths >= 100) unlockAchievement('sisyphus');
       playExtremeSound('eat_nuke');
       screenShake = 80;
       flashIntensity = 1.0;
@@ -1752,8 +1832,10 @@
       writeText(speedEl, 'speed', Math.round(speedScale * 100) + '%');
       if (speedScale >= 2.0) unlockAchievement('speed_demon');
       if (speedScale >= MAX_SPEED_SCALE) unlockAchievement('terminal_velocity');
-      if (gameStarted && !gameOver && performance.now() - run.startedAt >= 120000) {
-        unlockAchievement('long_haul');
+      if (gameStarted && !gameOver) {
+        const alive = performance.now() - run.startedAt;
+        if (alive >= 120000) unlockAchievement('long_haul');
+        if (alive >= 300000) unlockAchievement('marathoner');
       }
 
       // Update Game Logic Step
@@ -2169,6 +2251,9 @@
     function startGame() {
       gameStarted = true;
       run.startedAt = performance.now();
+      stats.runs++;
+      saveStats();
+      if (stats.runs >= 50) unlockAchievement('habitual');
       triggerScreamer('⚡ OVERDRIVE ENGAGED ⚡', '#00ffff');
     }
 

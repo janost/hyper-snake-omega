@@ -42,9 +42,9 @@ Fill your Overdrive gauge to 100% to trigger **RAINBOW FEVER**:
 
 ---
 
-## 🏆 25 PERSISTENT ACHIEVEMENTS
+## 🏆 43 PERSISTENT ACHIEVEMENTS
 
-Tracked live in the cyber-sidebar and saved across sessions via `localStorage`. The unlocks themselves are permanent; the ones marked **per run** have to be earned inside a single life, and their counters reset the moment you respawn.
+Tracked live in the cyber-sidebar and saved across sessions via `localStorage`. The unlocks themselves are permanent. The ones marked **per run** have to be earned inside a single life and their counters reset the moment you respawn; the ones marked **lifetime** tally across every run you have ever played.
 
 - 🩸 **FIRST BLOOD** — Devour your first cyber-matter core.
 - ⚡ **HYPER VELOCITY** — Reach a 5x combo streak.
@@ -71,6 +71,24 @@ Tracked live in the cyber-sidebar and saved across sessions via `localStorage`. 
 - 🌀 **PHASE SHIFTER** — Warp through the grid edge during Fever.
 - 🧊 **COLD BLOODED** — Score 1,000 before ever triggering Fever, **per run**.
 - ⏳ **LONG HAUL** — Survive a single run for 2 minutes.
+- 🌠 **COMET CHAIN** — Reach a 30x combo streak.
+- 🏦 **COSMIC OLIGARCH (25K)** — Score over 25,000 points.
+- 🪐 **HEAT DEATH SURVIVOR (50K)** — Score over 50,000 points.
+- 🪢 **PLANET GIRDLE** — Grow to length 100.
+- 💣 **MUTUALLY ASSURED** — Detonate 10 nukes, **per run**.
+- 🧲 **GRAVITY ADDICT** — Absorb 5 singularities, **per run**.
+- 🎯 **BEAM SATURATION** — Fire 15 laser cross-beams, **per run**.
+- 🥵 **FEVER DREAM** — Trigger Fever 5 times, **per run**.
+- 🌪️ **DIMENSIONAL DRIFTER** — Warp the grid edge 10 times, **per run**.
+- 🗺️ **CARTOGRAPHER** — Feed from all four corners, **per run**.
+- 🏹 **STRAIGHT SHOOTER** — Travel 20 tiles without turning.
+- ♨️ **HOT START** — Reach a 5x combo in the first 15 seconds, **per run**.
+- 🚄 **FAST MONEY** — Score 1,000 inside 30 seconds, **per run**.
+- 🕰️ **MARATHONER** — Survive a single run for 5 minutes.
+- 🍔 **GLUTTON PRIME** — Devour 1,000 cores, **lifetime**.
+- 🎰 **HABITUAL** — Start 50 runs, **lifetime**.
+- 💀 **SISYPHUS** — Die 100 times, **lifetime**.
+- 🏆 **SINGULARITY COMPLETE** — Unlock every other trophy.
 
 ---
 
