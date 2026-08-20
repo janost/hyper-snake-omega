@@ -1335,8 +1335,10 @@
         }
       }
 
-      // Self Collision Check (Immune during fever)
-      for (let i = 0; i < snake.length; i++) {
+      // Self Collision Check (Immune during fever). The final segment is skipped
+      // because it vacates on this same tick. Food never spawns on the snake, so
+      // the grow case can't land on the tail either.
+      for (let i = 0; i < snake.length - 1; i++) {
         if (head.x === snake[i].x && head.y === snake[i].y) {
           if (!feverActive) {
             annihilateSnake('OUROBOROS SELF DESTRUCTION');
