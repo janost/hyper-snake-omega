@@ -78,7 +78,13 @@ No MP3s. No WAV files. No network lag.
 
 ---
 
-## 🚀 HOW TO RUN
+## 🚀 PLAY ONLINE NOW
+
+👉 **[https://janost.github.io/hyper-snake-omega/](https://janost.github.io/hyper-snake-omega/)**
+
+---
+
+## 🚀 HOW TO RUN LOCALLY
 
 No `npm install`. No `docker run`. No build steps.
 
