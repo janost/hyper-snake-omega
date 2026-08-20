@@ -656,6 +656,23 @@
       }
     }
 
+    // Assigning an unchanged textContent or style value still costs a style
+    // invalidation. The HUD, the fever bar and the camera transform are all
+    // written on every single frame and mostly don't change between them.
+    const lastWrite = {};
+
+    function writeText(el, key, value) {
+      if (lastWrite[key] === value) return;
+      lastWrite[key] = value;
+      el.textContent = value;
+    }
+
+    function writeStyle(el, prop, key, value) {
+      if (lastWrite[key] === value) return;
+      lastWrite[key] = value;
+      el.style[prop] = value;
+    }
+
     function storageGetJSON(key, fallback) {
       const raw = storageGet(key);
       if (raw === null) return fallback;
@@ -1087,7 +1104,7 @@
        GAMEPAD POLLING ENGINE (Xbox standard layout mapping + Analog Deadzones)
        ========================================================================= */
     const STICK_DEADZONE = 0.35;
-    let prevPadButtons = {};
+    let prevPadButtons = [];
     let prevPadAxes = { x: 0, y: 0 };
 
     function pollGamepads() {
@@ -1103,7 +1120,7 @@
       }
 
       if (activePad) {
-        padEl.textContent = 'PAD 1';
+        writeText(padEl, 'pad', 'PAD 1');
         padEl.classList.add('connected');
         unlockAchievement('pad_warrior');
 
@@ -1158,12 +1175,13 @@
         }
 
         // Cache button state for edge detection
-        prevPadButtons = {};
+        // Reused in place; this runs every frame while a pad is connected.
+        prevPadButtons.length = b.length;
         for (let j = 0; j < b.length; j++) {
           prevPadButtons[j] = isPressed(j);
         }
       } else {
-        padEl.textContent = 'OFF';
+        writeText(padEl, 'pad', 'OFF');
         padEl.classList.remove('connected');
       }
     }
@@ -1176,7 +1194,7 @@
     });
 
     window.addEventListener('gamepaddisconnected', () => {
-      padEl.textContent = 'OFF';
+      writeText(padEl, 'pad', 'OFF');
       padEl.classList.remove('connected');
     });
     const feverFill = document.getElementById('fever-fill');
@@ -1731,7 +1749,7 @@
       const speedScale = Math.min(MAX_SPEED_SCALE,
         1 + score * SPEED_PER_SCORE + combo * SPEED_PER_COMBO + (feverActive ? SPEED_FEVER_BONUS : 0));
       const currentTickRate = Math.max(MIN_TICK_MS, BASE_SPEED / speedScale);
-      speedEl.textContent = Math.round(speedScale * 100) + '%';
+      writeText(speedEl, 'speed', Math.round(speedScale * 100) + '%');
       if (speedScale >= 2.0) unlockAchievement('speed_demon');
       if (speedScale >= MAX_SPEED_SCALE) unlockAchievement('terminal_velocity');
       if (gameStarted && !gameOver && performance.now() - run.startedAt >= 120000) {
@@ -1758,8 +1776,8 @@
       if (feverActive) {
         feverTimeLeft -= dt;
         const progress = Math.max(0, feverTimeLeft / feverDuration);
-        feverFill.style.width = (progress * 100) + '%';
-        feverTxt.textContent = `⚡ FEVER ACTIVE: ${(Math.max(0, feverTimeLeft)/1000).toFixed(1)}s (GODMODE) ⚡`;
+        writeStyle(feverFill, 'width', 'feverW', (progress * 100) + '%');
+        writeText(feverTxt, 'feverTxt', `⚡ FEVER ACTIVE: ${(Math.max(0, feverTimeLeft)/1000).toFixed(1)}s (GODMODE) ⚡`);
         if (feverTimeLeft <= 0) {
           feverActive = false;
           feverEnergy = 0;
@@ -1768,8 +1786,8 @@
           if (gameStarted && !gameOver) unlockAchievement('ghost_slayer');
         }
       } else {
-        feverFill.style.width = feverEnergy + '%';
-        feverTxt.textContent = feverEnergy > 0 ? `ENERGY: ${Math.round(feverEnergy)}%` : `⚡ HYPER-DRIVE IDLE ⚡`;
+        writeStyle(feverFill, 'width', 'feverW', feverEnergy + '%');
+        writeText(feverTxt, 'feverTxt', feverEnergy > 0 ? `ENERGY: ${Math.round(feverEnergy)}%` : `⚡ HYPER-DRIVE IDLE ⚡`);
       }
 
       // Smooth Camera Decay
@@ -1788,25 +1806,27 @@
       }
 
       if (!lowGraphics) {
-        rig.style.transform = `translate(${shakeX}px, ${shakeY}px) scale(${cameraZoom}) rotate(${cameraRotate}rad)`;
+        writeStyle(rig, 'transform', 'rig',
+          `translate(${shakeX}px, ${shakeY}px) scale(${cameraZoom}) rotate(${cameraRotate}rad)`);
       } else {
-        rig.style.transform = 'none';
+        writeStyle(rig, 'transform', 'rig', 'none');
       }
 
       // Flashes & strobe overlays
       if (!lowGraphics && flashIntensity > 0) {
-        superFlash.style.opacity = flashIntensity;
+        writeStyle(superFlash, 'opacity', 'flash', flashIntensity);
       } else {
-        superFlash.style.opacity = 0;
+        writeStyle(superFlash, 'opacity', 'flash', 0);
       }
       if (flashIntensity > 0) {
         flashIntensity *= decay(0.82);
       }
 
       if (!lowGraphics) {
-        apocOverlay.style.opacity = feverActive ? (Math.sin(timestamp * 0.02) * 0.25 + 0.35) : (combo > 5 ? 0.2 : 0);
+        writeStyle(apocOverlay, 'opacity', 'apoc',
+          feverActive ? (Math.sin(timestamp * 0.02) * 0.25 + 0.35) : (combo > 5 ? 0.2 : 0));
       } else {
-        apocOverlay.style.opacity = 0;
+        writeStyle(apocOverlay, 'opacity', 'apoc', 0);
       }
 
       // MAIN CANVAS DRAWING
