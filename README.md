@@ -5,11 +5,27 @@
 
 **MAXIMUM UNCHAINED OVERKILL • 150BPM SYNTHWAVE • ZERO INHIBITIONS • FULL GAS**
 
+[![Stars](https://img.shields.io/github/stars/janost/hyper-snake-omega?style=for-the-badge&color=ffee00&labelColor=120018&logo=github)](https://github.com/janost/hyper-snake-omega/stargazers)
+[![Last commit](https://img.shields.io/github/last-commit/janost/hyper-snake-omega?style=for-the-badge&color=00ff66&labelColor=120018)](https://github.com/janost/hyper-snake-omega/commits/main)
+[![Code size](https://img.shields.io/github/languages/code-size/janost/hyper-snake-omega?style=for-the-badge&color=00ffff&labelColor=120018)](index.html)
+[![Top language](https://img.shields.io/github/languages/top/janost/hyper-snake-omega?style=for-the-badge&color=ff0055&labelColor=120018)](index.html)
+
 [![ONE FILE](https://img.shields.io/badge/ONE_FILE-index.html-ff0055?style=for-the-badge&labelColor=120018)](index.html)
+[![LINES](https://img.shields.io/badge/LINES-2%2C697-ff5500?style=for-the-badge&labelColor=120018)](index.html)
 [![DEPENDENCIES](https://img.shields.io/badge/DEPENDENCIES-0-00ff66?style=for-the-badge&labelColor=120018)](#-how-to-run-locally)
 [![BUILD STEP](https://img.shields.io/badge/BUILD_STEP-NONE-00ffff?style=for-the-badge&labelColor=120018)](#-how-to-run-locally)
+[![IMAGE ASSETS](https://img.shields.io/badge/IMAGE_ASSETS-0-bd00ff?style=for-the-badge&labelColor=120018)](#-the-fx-pipeline)
+
+[![VIBE CODED](https://img.shields.io/badge/VIBE_CODED-100%25-ff0055?style=for-the-badge&labelColor=120018)](#-100-vibe-coded-zero-breaks-full-gas)
+[![BREAKS TAKEN](https://img.shields.io/badge/BREAKS_TAKEN-0-ff5500?style=for-the-badge&labelColor=120018)](#-100-vibe-coded-zero-breaks-full-gas)
+[![THROTTLE](https://img.shields.io/badge/THROTTLE-FULL_GAS-ffee00?style=for-the-badge&labelColor=120018)](#-100-vibe-coded-zero-breaks-full-gas)
+[![BRAKES](https://img.shields.io/badge/BRAKES-NOT_FITTED-00ffff?style=for-the-badge&labelColor=120018)](#-100-vibe-coded-zero-breaks-full-gas)
+
 [![TROPHIES](https://img.shields.io/badge/TROPHIES-43-ffee00?style=for-the-badge&labelColor=120018)](#-43-persistent-achievements)
 [![AUDIO](https://img.shields.io/badge/AUDIO-100%25_SYNTHESIZED-bd00ff?style=for-the-badge&labelColor=120018)](#-hardcore-procedural-audio-engine-web-audio-api)
+[![BPM](https://img.shields.io/badge/BPM-150-ff0055?style=for-the-badge&labelColor=120018)](#-hardcore-procedural-audio-engine-web-audio-api)
+[![GRID](https://img.shields.io/badge/GRID-20x20-00ff66?style=for-the-badge&labelColor=120018)](#-it-scales-to-anything-you-throw-at-it)
+[![GAMEPAD](https://img.shields.io/badge/GAMEPAD-DUAL_RUMBLE-00ffff?style=for-the-badge&labelColor=120018)](#-controls--hardware-support)
 
 # [▶ PLAY IT RIGHT NOW](https://janost.github.io/hyper-snake-omega/)
 
@@ -27,6 +43,8 @@ Forget whatever boring, beige, 1997 Nokia snake game you played in middle school
 
 Built into a **single, self-contained `index.html` file** with **zero external JS libraries** and **zero image assets**. Everything—the audio synthesizer, drum sequencer, particle physics, 3D warp grid, and bloom shaders—is generated raw on the metal in real time.
 
+Nothing here is a sprite. Nothing here is an MP3. **Every pixel and every sound is computed from scratch, every single frame, while you play.**
+
 ```
    _____ _   _          _  ________    ____  __  __ ______ _____          
   / ____| \ | |   /\   | |/ /  ____|  / __ \|  \/  |  ____/ ____|   /\    
@@ -43,6 +61,25 @@ Built into a **single, self-contained `index.html` file** with **zero external J
 <sub>Five seconds of it. Laser cross-beams, a nuclear whiteout, and Fever kicking in.</sub>
 
 </div>
+
+---
+
+## 📊 BY THE NUMBERS
+
+| | |
+|---:|---|
+| **1** | file, and it opens with a double-click |
+| **0** | dependencies |
+| **0** | build steps |
+| **0** | image assets on disk |
+| **0** | breaks taken while writing it |
+| **2,697** | lines of HTML, CSS and JavaScript |
+| **99 KB** | the entire game |
+| **43** | persistent achievements |
+| **5** | types of cyber-matter |
+| **400** | tiles on the grid |
+| **150** | BPM, synthesized live |
+| **160** | particles off a single nuke |
 
 ---
 
@@ -91,17 +128,23 @@ Built into a **single, self-contained `index.html` file** with **zero external J
 
 ## 🌈 RAINBOW FEVER GODMODE
 
-Fill your Overdrive gauge to 100% to trigger **RAINBOW FEVER**:
+Fill your Overdrive gauge to 100% and the game stops pretending it has rules.
+
 - 🚀 **Invulnerability** against wall crashes (warp through the grid edge).
 - 👻 **Immunity** against eating your own tail.
 - ⚡ **2.0x Baseline Combo Multiplier** stacked on top of existing streaks.
 - 🌈 **Full-Spectrum Chromatic Rainbow Dragon Trail**.
+- 💥 The bassline jumps an octave and the whole rig starts strobing.
+
+For eight seconds you are not playing snake. You are a rainbow freight train with no brakes and the walls are a suggestion.
 
 ---
 
 ## 🏆 43 PERSISTENT ACHIEVEMENTS
 
 Tracked live in the cyber-sidebar and saved across sessions via `localStorage`. The unlocks themselves are permanent. The ones marked **per run** have to be earned inside a single life and their counters reset the moment you respawn; the ones marked **lifetime** tally across every run you have ever played.
+
+Forty-two of them are earnable. The forty-third is what you get for taking the other forty-two.
 
 - 🩸 **FIRST BLOOD** — Devour your first cyber-matter core.
 - ⚡ **HYPER VELOCITY** — Reach a 5x combo streak.
@@ -151,10 +194,13 @@ Tracked live in the cyber-sidebar and saved across sessions via `localStorage`. 
 
 ## 🔊 HARDCORE PROCEDURAL AUDIO ENGINE (Web Audio API)
 
-No MP3s. No WAV files. No network lag.
+No MP3s. No WAV files. No network lag. **Not one byte of recorded audio ships with this game.**
+
 - **150 BPM Darksynth Drum Machine**: Real-time synthesized kicks, snappiest noise claps, and open hi-hats.
 - **Rolling Acid Bassline**: Dynamic low-pass resonant filter sweeps that crank up and distort as your combo grows.
 - **Sound FX Synthesizers**: Procedural white-noise explosion filters, FM laser sweeps, ascending singularity risers, and victory fanfare chords.
+
+The soundtrack reacts to how well you are doing. Rack up a streak and the filter opens, the distortion bites and the whole mix gets meaner. The game is scoring itself while you play it.
 
 ---
 
@@ -167,13 +213,15 @@ No MP3s. No WAV files. No network lag.
   - **Dual-Rumble Haptic Feedback**: Dynamic low/high-frequency motor vibration triggers on eating, nuke detonations, laser bursts, black holes, and deaths.
 - 📱 **Touch D-Pad**: Automatic on-screen touch overlay on phones & tablets.
 
+Plug a controller in and the pad **rumbles differently for every kind of death and every kind of pickup.** A nuke is not the same handful of vibration as a laser.
+
 ---
 
-## 🖥️ IT SCALES
+## 🖥️ IT SCALES TO ANYTHING YOU THROW AT IT
 
 The board grows to fill whatever room it has. The column takes the viewport height, the chrome takes what it needs, and the board absorbs everything left over, so there is no magic reserve to get wrong when the title reflows or the touch d-pad appears.
 
-Hit **FULL** in the HUD (or press **F**) and it reclaims the browser chrome too. Same 20x20 grid at every size — only the pixels get bigger, never the board.
+Hit **FULL** in the HUD (or press **F**) and it reclaims the browser chrome too. Same 20x20 grid at every size — only the pixels get bigger, never the board. A phone and a 4K monitor play the exact same game.
 
 | viewport | board |
 |---|---|
@@ -188,7 +236,7 @@ The canvas keeps a fixed 540x540 backing store and CSS stretches it, so every dr
 
 ## 🔮 THE FX PIPELINE
 
-Everything on the game canvas is drawn per frame from primitives. No sprites on disk, no shader files.
+Everything on the game canvas is drawn per frame from primitives. No sprites on disk, no shader files, no asset folder.
 
 - **Bloom** — the scene is downsampled through a chain of halved buffers and composited back additively. The downsample *is* the blur.
 - **Glow sprites** — one radial-gradient sprite is baked per colour and blitted additively. Particles, the snake halo, food halos and the ambient starfield all come from the same cache.
@@ -202,9 +250,23 @@ Everything on the game canvas is drawn per frame from primitives. No sprites on 
 
 ---
 
+## 🧪 100% VIBE CODED, ZERO BREAKS, FULL GAS
+
+No design doc. No sprint board. No tickets. No stand-up. No architecture review. No "let's circle back on the particle budget."
+
+I sat down, put the throttle on the floor and never lifted off it. The synth engine, the bloom chain, the gravity wells, the 43-trophy tracker, the gamepad rumble curves, all of it got built in one continuous full-gas run on vibes alone. When something felt like it should exist, it went in. When it felt slow, it got faster. That was the entire process.
+
+The whole thing is still one file. That was never the plan, it just never stopped being true.
+
+**Vibes: kept. Brakes: never fitted. Gas: full.**
+
+---
+
 ## ⚠️ PHOTOSENSITIVITY & THE GFX TOGGLE
 
-This game strobes hard by default. The **GFX** button in the HUD switches between **ULTRA** and **LOW**; LOW drops the bloom, the screen shake, the full-screen flashes, the chromatic aberration, the warp grid, the ambient particle field and every looping strobe animation, and the choice is remembered in `localStorage`.
+This game strobes hard by default. Full gas has an off switch, and here it is.
+
+The **GFX** button in the HUD switches between **ULTRA** and **LOW**; LOW drops the bloom, the screen shake, the full-screen flashes, the chromatic aberration, the warp grid, the ambient particle field and every looping strobe animation, and the choice is remembered in `localStorage`.
 
 If your OS is set to **reduce motion**, the game starts in LOW automatically and the flashing elements stay disabled even if you switch back to ULTRA.
 
@@ -218,7 +280,7 @@ Same snake, same board, same 31x combo. Only the painting changes.
 
 ## 🚀 HOW TO RUN LOCALLY
 
-No `npm install`. No `docker run`. No build steps.
+No `npm install`. No `docker run`. No bundler. No config file. No build steps. There is nothing to install because there is nothing to install.
 
 ```bash
 # Clone the madness
@@ -228,6 +290,8 @@ git clone https://github.com/janost/hyper-snake-omega.git
 cd hyper-snake-omega
 xdg-open index.html # Or open index.html in Chrome/Firefox/Safari
 ```
+
+That is it. That is the whole setup. Double-clicking the file also works, because it is just a file.
 
 ---
 
