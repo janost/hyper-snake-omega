@@ -1166,7 +1166,16 @@
 
     const GRID_SIZE = 27;
     const TILE_COUNT = canvas.width / GRID_SIZE; // 20x20
-    const BASE_SPEED = 105;
+    // Tick interval at 100% speed, in ms. Larger is slower.
+    const BASE_SPEED = 116;
+    // Floor on the tick interval, so the speed curve can't outrun human reaction.
+    const MIN_TICK_MS = 42;
+    // How the tick rate ramps. Score used to divide by 400, which saturated the
+    // whole curve within about fifteen pickups once big food started landing.
+    const SPEED_PER_SCORE = 0.35 / 650;
+    const SPEED_PER_COMBO = 0.06;
+    const SPEED_FEVER_BONUS = 0.6;
+    const MAX_SPEED_SCALE = 2.8;
 
     let snake = [];
     let direction = { x: 0, y: 0 };
@@ -1666,8 +1675,9 @@
       }
 
       // Calculate Speed Curve
-      const speedScale = Math.min(3.0, 1 + (score / 400) * 0.35 + (combo * 0.08) + (feverActive ? 0.6 : 0));
-      const currentTickRate = Math.max(38, BASE_SPEED / speedScale);
+      const speedScale = Math.min(MAX_SPEED_SCALE,
+        1 + score * SPEED_PER_SCORE + combo * SPEED_PER_COMBO + (feverActive ? SPEED_FEVER_BONUS : 0));
+      const currentTickRate = Math.max(MIN_TICK_MS, BASE_SPEED / speedScale);
       speedEl.textContent = Math.round(speedScale * 100) + '%';
       if (speedScale >= 2.0) unlockAchievement('speed_demon');
 
