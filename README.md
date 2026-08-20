@@ -1,5 +1,31 @@
-# 🔥💥 HYPER-SNAKE OMEGA // APOCALYPSE SINGULARITY 💥🔥
-### ⚡ MAXIMUM UNCHAINED OVERKILL • 150BPM SYNTHWAVE • ZERO INHIBITIONS • FULL GAS ⚡
+<div align="center">
+
+# 🔥💥 HYPER-SNAKE OMEGA 💥🔥
+## ⚡ APOCALYPSE SINGULARITY ⚡
+
+**MAXIMUM UNCHAINED OVERKILL • 150BPM SYNTHWAVE • ZERO INHIBITIONS • FULL GAS**
+
+[![ONE FILE](https://img.shields.io/badge/ONE_FILE-index.html-ff0055?style=for-the-badge&labelColor=120018)](index.html)
+[![DEPENDENCIES](https://img.shields.io/badge/DEPENDENCIES-0-00ff66?style=for-the-badge&labelColor=120018)](#-how-to-run-locally)
+[![BUILD STEP](https://img.shields.io/badge/BUILD_STEP-NONE-00ffff?style=for-the-badge&labelColor=120018)](#-how-to-run-locally)
+[![TROPHIES](https://img.shields.io/badge/TROPHIES-43-ffee00?style=for-the-badge&labelColor=120018)](#-43-persistent-achievements)
+[![AUDIO](https://img.shields.io/badge/AUDIO-100%25_SYNTHESIZED-bd00ff?style=for-the-badge&labelColor=120018)](#-hardcore-procedural-audio-engine-web-audio-api)
+
+# [▶ PLAY IT RIGHT NOW](https://janost.github.io/hyper-snake-omega/)
+
+<img src="screenshots/hero.webp" alt="Rainbow Fever: a 76-segment chromatic snake filling the grid at a 27x combo and 48,210 points, with the RAINBOW FEVER banner across the board" width="100%">
+
+<sub><b>RAINBOW FEVER.</b> 76 segments, 27x combo, 280% engine speed, walls turned off.</sub>
+
+</div>
+
+---
+
+## 💀 WHAT IS THIS MONSTROSITY?!
+
+Forget whatever boring, beige, 1997 Nokia snake game you played in middle school. **HYPER-SNAKE: APOCALYPSE SINGULARITY** is a dopamine-fueled, retrowave-blasted, screen-shaking, thermonuclear arcade acid trip that turns a simple grid game into **PURE UNFILTERED CYBERPUNK CHAOS**.
+
+Built into a **single, self-contained `index.html` file** with **zero external JS libraries** and **zero image assets**. Everything—the audio synthesizer, drum sequencer, particle physics, 3D warp grid, and bloom shaders—is generated raw on the metal in real time.
 
 ```
    _____ _   _          _  ________    ____  __  __ ______ _____          
@@ -10,17 +36,25 @@
  |_____/|_| \_/_/    \_\_|\_\______|  \____/|_|  |_|______\_____/_/    \_\
 ```
 
----
+<div align="center">
 
-## 💀 WHAT IS THIS MONSTROSITY?!
+<img src="screenshots/gameplay.webp" alt="Animated gameplay: the snake eating through the grid, firing laser cross-beams, detonating a nuke, and entering Rainbow Fever" width="640">
 
-Forget whatever boring, beige, 1997 Nokia snake game you played in middle school. **HYPER-SNAKE: APOCALYPSE SINGULARITY** is a dopamine-fueled, retrowave-blasted, screen-shaking, thermonuclear arcade acid trip that turns a simple grid game into **PURE UNFILTERED CYBERPUNK CHAOS**.
+<sub>Five seconds of it. Laser cross-beams, a nuclear whiteout, and Fever kicking in.</sub>
 
-Built into a **single, self-contained `index.html` file** with **zero external JS libraries** and **zero image assets**. Everything—the audio synthesizer, drum sequencer, particle physics, 3D warp grid, and bloom shaders—is generated raw on the metal in real time.
+</div>
 
 ---
 
 ## ⚡ ULTRA WEAPONRY & POWER-UP ARSENAL
+
+<div align="center">
+
+<img src="screenshots/arsenal.webp" alt="Four panels: the nuke whiteout with corner lightning, a black hole singularity pulling in particles, cyan laser cross-beams down a row and column, and a hyper star payout" width="100%">
+
+<sub>Nuke · Singularity · Cross-beam · Hyper Star</sub>
+
+</div>
 
 | ICON | ITEM | DISASTER LEVEL | WHAT HAPPENS |
 |---|---|---|---|
@@ -29,6 +63,29 @@ Built into a **single, self-contained `index.html` file** with **zero external J
 | ⚡ | **Laser Cross-Beam** | LETHAL | Dual laser beams flash across the full row and column you ate on. |
 | ☢️ | **Thermonuclear Nuke** | APOCALYPTIC | Screen-wide whiteout flash, 4-corner high-voltage lightning strikes, extreme screen violence. |
 | 🌌 | **Black Hole Singularity** | COSMIC EXTINCTION | Biggest score payout on the board. Arcs a violet gravity tether to every other food still on the grid. |
+
+<details>
+<summary><b>🔬 Open the full-size shots</b></summary>
+
+<br>
+
+**☢️ THERMONUCLEAR NUKE** — whiteout flash, lightning arced to all four corners, 160 particles off one tile.
+
+<img src="screenshots/nuke.webp" alt="The nuke detonation: red screen wash, expanding shock ring, lightning striking the corners" width="100%">
+
+**🌌 BLACK HOLE SINGULARITY** — the well pulls every particle on the board in on inverse-square attraction until it collapses.
+
+<img src="screenshots/blackhole.webp" alt="The black hole: violet gravity tethers arcing to the remaining food, particles spiralling into a dark core" width="100%">
+
+**⚡ LASER CROSS-BEAM** — full-canvas beams down the row and column you ate on.
+
+<img src="screenshots/laser.webp" alt="Cyan laser beams crossing the entire board through the snake's head" width="100%">
+
+**⭐ HYPER STAR** — multiplier payout and a shock ring.
+
+<img src="screenshots/hyperstar.webp" alt="The hyper star payout with its shock ring expanding across the grid" width="100%">
+
+</details>
 
 ---
 
@@ -151,11 +208,11 @@ This game strobes hard by default. The **GFX** button in the HUD switches betwee
 
 If your OS is set to **reduce motion**, the game starts in LOW automatically and the flashing elements stay disabled even if you switch back to ULTRA.
 
----
+| 🔥 ULTRA | 🧊 LOW |
+|---|---|
+| <img src="screenshots/gfx-ultra.webp" alt="ULTRA graphics mode: the same board bathed in bloom, chromatic aberration and a pink full-screen wash" width="100%"> | <img src="screenshots/gfx-low.webp" alt="LOW graphics mode: the same board with flat colours, no bloom and no full-screen wash" width="100%"> |
 
-## 🚀 PLAY ONLINE NOW
-
-👉 **[https://janost.github.io/hyper-snake-omega/](https://janost.github.io/hyper-snake-omega/)**
+Same snake, same board, same 31x combo. Only the painting changes.
 
 ---
 
@@ -175,6 +232,8 @@ xdg-open index.html # Or open index.html in Chrome/Firefox/Safari
 ---
 
 <div align="center">
+
+# [▶ PLAY IT RIGHT NOW](https://janost.github.io/hyper-snake-omega/)
 
 **🔥 NOW GO FORTH AND DEVOUR THE COSMOS 🔥**
 
