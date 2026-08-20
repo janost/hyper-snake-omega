@@ -112,9 +112,25 @@ No MP3s. No WAV files. No network lag.
 
 ---
 
+## 🔮 THE FX PIPELINE
+
+Everything on the game canvas is drawn per frame from primitives. No sprites on disk, no shader files.
+
+- **Bloom** — the scene is downsampled through a chain of halved buffers and composited back additively. The downsample *is* the blur.
+- **Glow sprites** — one radial-gradient sprite is baked per colour and blitted additively. Particles, the snake halo, food halos and the ambient starfield all come from the same cache.
+- **Gravity wells** — a black hole pickup leaves a singularity that pulls every particle on inverse-square attraction until it collapses.
+- **The swallow** — eating sends a wave from the head to the tail, swelling each segment as it passes.
+- **Chromatic aberration** — opposed red/cyan drop-shadows on the whole rig, spiked by nukes, singularities, Fever and death.
+- **Warp streaks** — radial speed lines during Fever.
+- **Screen shake, zoom, roll, strobe and CRT scanlines** — camera and overlay work, all frame-rate independent.
+
+**LOW GFX turns off every one of these.** The game plays identically; it just stops painting.
+
+---
+
 ## ⚠️ PHOTOSENSITIVITY & THE GFX TOGGLE
 
-This game strobes hard by default. The **GFX** button in the HUD switches between **ULTRA** and **LOW**; LOW drops the screen shake, the full-screen flashes, the warp grid, the ambient particle field and every looping strobe animation, and the choice is remembered in `localStorage`.
+This game strobes hard by default. The **GFX** button in the HUD switches between **ULTRA** and **LOW**; LOW drops the bloom, the screen shake, the full-screen flashes, the chromatic aberration, the warp grid, the ambient particle field and every looping strobe animation, and the choice is remembered in `localStorage`.
 
 If your OS is set to **reduce motion**, the game starts in LOW automatically and the flashing elements stay disabled even if you switch back to ULTRA.
 
