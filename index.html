@@ -273,6 +273,19 @@
       animation: redAlert 0.2s infinite alternate;
     }
 
+    /* Drains across the bottom of the combo cell as the combo window runs out. */
+    .combo-timer {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 3px;
+      background: var(--neon-yellow);
+      box-shadow: 0 0 8px var(--neon-yellow);
+      transform-origin: left;
+      transform: scaleX(0);
+    }
+
     @keyframes redAlert {
       0% { filter: brightness(1); }
       100% { filter: brightness(1.7); }
@@ -640,6 +653,7 @@
         <div class="hud-cell" id="combo-cell">
           <span class="hud-lbl">COMBO</span>
           <span id="combo-val" class="hud-val" style="color: var(--neon-yellow);">1.0x</span>
+          <span id="combo-timer" class="combo-timer"></span>
         </div>
         <div class="hud-cell">
           <span class="hud-lbl">LENGTH</span>
@@ -793,7 +807,7 @@
       const intervalMs = (60 / bpm / 4) * 1000; // 16th notes
 
       musicTimer = setInterval(() => {
-        if (!actx || !gameStarted || gameOver) return;
+        if (!actx || !gameStarted || gameOver || pausedAt) return;
         const t = actx.currentTime;
 
         // Kick on every quarter note (step 0, 4, 8, 12)
@@ -1018,6 +1032,9 @@
       { id: 'glutton', icon: '🍔', title: 'GLUTTON PRIME', desc: 'Devour 1,000 cores across all runs' },
       { id: 'habitual', icon: '🎰', title: 'HABITUAL', desc: 'Start 50 runs' },
       { id: 'sisyphus', icon: '💀', title: 'SISYPHUS', desc: 'Die 100 times' },
+      { id: 'chain_reaction', icon: '⛓️', title: 'CHAIN REACTION', desc: 'Set off 3 more cores with a single bite' },
+      { id: 'omega', icon: 'Ω', title: 'OMEGA PROTOCOL', desc: 'Detonate an omega core' },
+      { id: 'fever_eternal', icon: '♾️', title: 'FEVER ETERNAL', desc: 'Keep one Fever alive for 30 seconds' },
       { id: 'omniscient', icon: '🏆', title: 'SINGULARITY COMPLETE', desc: 'Unlock every other trophy' }
     ];
 
@@ -1031,7 +1048,7 @@
 
     function newRun() {
       return {
-        nukes: 0, blackholes: 0, lasers: 0, fevers: 0, warps: 0,
+        nukes: 0, blackholes: 0, lasers: 0, fevers: 0, warps: 0, feverMs: 0,
         eaten: new Set(), corners: new Set(), straight: 0, startedAt: 0
       };
     }
@@ -1150,6 +1167,7 @@
     const bestEl = document.getElementById('best-val');
     const padEl = document.getElementById('pad-val');
     const comboCell = document.getElementById('combo-cell');
+    const comboTimer = document.getElementById('combo-timer');
     const gfxToggleBtn = document.getElementById('gfx-toggle');
     const fsToggleBtn = document.getElementById('fs-toggle');
 
@@ -1339,12 +1357,19 @@
         prevPadAxes.x = stickX;
         prevPadAxes.y = stickY;
 
-        // Start / A / X button to start or respawn
-        if ((isPressed(0) && !wasPressed(0)) || (isPressed(9) && !wasPressed(9)) || (isPressed(2) && !wasPressed(2))) {
-          if (gameOver || !gameStarted) {
+        // Start / A / X to start or respawn. Mid-run, Start toggles pause and
+        // A / X resume.
+        const edge = (idx) => isPressed(idx) && !wasPressed(idx);
+        const confirm = edge(0) || edge(2);
+        if (gameOver || !gameStarted) {
+          if (confirm || edge(9)) {
             handleAction('Enter');
             rumbleGamepad(150, 0.4, 0.4);
           }
+        } else if (edge(9)) {
+          handleAction('p');
+        } else if (pausedAt && confirm) {
+          handleAction('Enter');
         }
 
         for (let d = 0; d < dirEdges.length; d++) {
@@ -1409,6 +1434,39 @@
     let highScore = Number(storageGet('hyper_snake_omega_hi')) || 0;
     let gameOver = false;
     let gameStarted = false;
+    // performance.now() when the pause began, or 0 while running. Resuming
+    // shifts every wall-clock timestamp forward by the gap, so a pause can't
+    // burn the combo window, expire food or count towards LONG HAUL.
+    let pausedAt = 0;
+
+    // Payout per pickup before the combo multiplier.
+    const FOOD_POINTS = { normal: 10, super: 40, laser: 60, nuke: 100, blackhole: 150, omega: 250 };
+    // How long special matter stays on the board, in ms. The bigger the payout
+    // the shorter the window, so going for one is a decision rather than a
+    // given. Plain cores never expire. The last FOOD_WARN_MS of a lifetime blinks.
+    const FOOD_TTL = { super: 9000, laser: 8000, nuke: 7000, blackhole: 6000, omega: 5000 };
+    const FOOD_WARN_MS = 2000;
+    // Nuke: blows off this fraction of everything past the starting length.
+    const NUKE_SEVER_FRACTION = 1 / 3;
+    const NUKE_POINTS_PER_SEGMENT = 5;
+    // Black hole: how many tiles each remaining core gets dragged towards the head.
+    const BLACKHOLE_PULL = 5;
+    // Nuke: anything within this many tiles (king's moves) of it goes off too.
+    const NUKE_BLAST_RADIUS = 3;
+    // Every link down a chain reaction adds this much on top of the multiplier.
+    const CHAIN_MULT_PER_LINK = 1;
+    // FEVER FRENZY: each core detonated during Fever puts this back on the clock.
+    const FEVER_EXTEND_MS = 1200;
+    // One continuous Fever this long, kept alive by FRENZY, is FEVER ETERNAL.
+    const FEVER_ETERNAL_MS = 30000;
+    // Announced the moment the combo streak lands exactly on one of these.
+    const COMBO_TIERS = [
+      { combo: 10, text: '🔥 GODLIKE 🔥', color: '#ff5500' },
+      { combo: 20, text: '💫 BEYOND GODLIKE 💫', color: '#ff00ff' },
+      { combo: 30, text: '🌠 COSMIC TERROR 🌠', color: '#00ffff' },
+      { combo: 50, text: 'Ω OMEGA STREAK Ω', color: '#ffffff' }
+    ];
+    const START_LENGTH = 5;
 
     // FEVER / OVERDRIVE SYSTEM
     let feverEnergy = 0; // 0 to 100
@@ -1449,6 +1507,22 @@
     // Exact colour for the solid body, so the rainbow gradient down the snake is
     // unchanged. The glow behind it uses a hue rounded to 10deg, which keeps the
     // sprite cache bounded and is imperceptible under an additive blur.
+    // Strokes the current path as a soft halo around a hot core, with the
+    // caller already on 'lighter' compositing. Three plain strokes stand in for
+    // the shadowBlur filter pass that used to do this.
+    function glowStroke(width, alpha, color) {
+      ctx.strokeStyle = color;
+      ctx.globalAlpha = alpha * 0.12;
+      ctx.lineWidth = width * 5;
+      ctx.stroke();
+      ctx.globalAlpha = alpha * 0.35;
+      ctx.lineWidth = width * 2.2;
+      ctx.stroke();
+      ctx.globalAlpha = alpha;
+      ctx.lineWidth = width;
+      ctx.stroke();
+    }
+
     function segmentColor(i) {
       return feverActive
         ? `hsl(${(rainbowHue + i * 25) % 360}, 100%, 65%)`
@@ -1460,7 +1534,7 @@
       return `hsl(${Math.round(hue / 10) * 10}, 100%, ${feverActive ? 65 : 60}%)`;
     }
 
-    const FOOD_SYMBOLS = { nuke: '☢', blackhole: '✦', laser: '⚡' };
+    const FOOD_SYMBOLS = { nuke: '☢', blackhole: '✦', laser: '⚡', omega: 'Ω' };
 
     /* -------------------------------------------------------------------------
        Bloom. The scene is downsampled into a chain of small buffers and composited
@@ -1531,9 +1605,9 @@
     const GRAVITY_G = 3400;
     const GRAVITY_MIN_DIST = 24;
     const GRAVITY_MAX_ACCEL = 6;
-    // Timers from the death animation, cleared on reset so a restart mid-explosion
-    // doesn't spray the old snake's debris across the new game.
-    let deathTimers = [];
+    // Timers from staggered explosions (death, nuked tail), cleared on reset so a
+    // restart mid-explosion doesn't spray the old snake's debris across the new game.
+    let fxTimers = [];
 
     // Camera & Screen Distortions
     let screenShake = 0;
@@ -1555,8 +1629,8 @@
     bestEl.textContent = highScore;
 
     function resetGame() {
-      deathTimers.forEach(clearTimeout);
-      deathTimers = [];
+      fxTimers.forEach(clearTimeout);
+      fxTimers = [];
 
       // Death leaves the camera mid-shake at zoom 1.3 / rotate 0.3; without this
       // the fresh game starts inside the old explosion.
@@ -1589,6 +1663,7 @@
       speedEl.textContent = '100%';
       gameOver = false;
       gameStarted = false;
+      pausedAt = 0;
 
       particles = [];
       shockwaves = [];
@@ -1635,7 +1710,8 @@
       const roll = Math.random();
       let type = forcedType;
       if (!type) {
-        if (roll < 0.15) type = 'blackhole';
+        if (roll < 0.04) type = 'omega';
+        else if (roll < 0.17) type = 'blackhole';
         else if (roll < 0.35) type = 'nuke';
         else if (roll < 0.60) type = 'laser';
         else if (roll < 0.80) type = 'super';
@@ -1647,7 +1723,8 @@
         y: pos.y,
         type: type,
         phase: Math.random() * Math.PI * 2,
-        born: performance.now()
+        born: performance.now(),
+        ttl: FOOD_TTL[type] || 0
       });
 
       // Spawn portal entry particles
@@ -1676,7 +1753,40 @@
         case 'blackhole': return '#bd00ff';
         case 'laser': return '#00ffff';
         case 'super': return '#ffee00';
+        // Cycles with the rainbow. Snapped to 10 degree steps so the glow sprite
+        // cache tops out at 36 entries instead of growing every frame.
+        case 'omega': return `hsl(${Math.round(rainbowHue / 10) * 10 % 360}, 100%, 60%)`;
         default: return '#00ff66';
+      }
+    }
+
+    // Canvas centre of a food's tile along one axis, plus any black-hole slide.
+    function foodPx(tile, slide) {
+      return tile * GRID_SIZE + GRID_SIZE / 2 + (slide || 0);
+    }
+
+    // Draw alpha for a food: 1, or a flicker that speeds up through the last
+    // FOOD_WARN_MS of a special's life. LOW skips the flicker; the ring still says it.
+    function foodBlink(f, now, timestamp) {
+      if (!f.ttl || lowGraphics) return 1;
+      const left = f.ttl - (now - f.born);
+      if (left > FOOD_WARN_MS) return 1;
+      const rate = 0.012 + 0.03 * (1 - left / FOOD_WARN_MS);
+      return 0.35 + 0.65 * (0.5 + 0.5 * Math.cos(timestamp * rate));
+    }
+
+    // Specials that run out of time collapse and get replaced one for one, so
+    // the board keeps its usual 3 to 5 cores.
+    function expireFoods(now) {
+      for (let i = foods.length - 1; i >= 0; i--) {
+        const f = foods[i];
+        if (!f.ttl || now - f.born < f.ttl) continue;
+        foods.splice(i, 1);
+        const fx = foodPx(f.x, f.slideX);
+        const fy = foodPx(f.y, f.slideY);
+        spawnHyperExplosion(fx, fy, 18, [getFoodColor(f.type), '#555', '#fff'], 0.35);
+        addFloatingText('DECAYED', fx, fy - 10, '#888', 0.7);
+        spawnFood();
       }
     }
 
@@ -1704,8 +1814,14 @@
       lightningBolts.push({ segments, life: 1.0, color });
     }
 
+    // Ceiling on live particles. A full-board omega chain peaks around 2,300;
+    // this only stops a pathological pile-up (chain after chain on a 100-long
+    // snake) from tanking the frame rate, and never trims a normal storm.
+    const MAX_PARTICLES = 3500;
+
     function spawnHyperExplosion(x, y, count, colors, speedMultiplier = 1) {
       if (lowGraphics) return;
+      count = Math.min(count, MAX_PARTICLES - particles.length);
       for (let i = 0; i < count; i++) {
         const ang = Math.random() * Math.PI * 2;
         const spd = (Math.random() * 12 + 3) * speedMultiplier;
@@ -1766,7 +1882,7 @@
        5. GAME LOOP LOGIC TICK
        ========================================================================= */
     function updateLogic() {
-      if (!gameStarted || gameOver) return;
+      if (!gameStarted || gameOver || pausedAt) return;
 
       const pendingTurn = turnQueue.shift();
       const turned = !!pendingTurn;
@@ -1852,120 +1968,28 @@
         if (++stats.food % 25 === 0) saveStats();
         if (stats.food >= 1000) unlockAchievement('glutton');
 
-        // Charge Fever Gauge
-        if (!feverActive) {
-          feverEnergy = Math.min(100, feverEnergy + (eaten.type === 'nuke' || eaten.type === 'blackhole' ? 35 : 18));
-          if (feverEnergy >= 100) {
-            activateFeverMode();
-          }
-        }
-
         const hx = head.x * GRID_SIZE + GRID_SIZE / 2;
         const hy = head.y * GRID_SIZE + GRID_SIZE / 2;
 
-        let basePoints = 10;
+        const bite = { mult, head, links: 0 };
+        const gained = detonate(eaten, bite, 0);
 
-        // FOOD TYPE SPECIAL DISASTERS
-        if (eaten.type === 'blackhole') {
-          unlockAchievement('singularity');
-          if (++run.blackholes >= 3) unlockAchievement('event_horizon');
-          if (run.blackholes >= 5) unlockAchievement('gravity_addict');
-          playExtremeSound('eat_blackhole');
-          basePoints = 150;
-          screenShake = 45;
-          chromaticAberration = 8;
-          cameraZoom = 1.25;
-          flashIntensity = 0.9;
-          rumbleGamepad(450, 0.7, 1.0);
-          spawnHyperExplosion(hx, hy, 140, ['#bd00ff', '#00ffff', '#fff', '#ff00ff'], 1.5);
-          addShockwave(hx, hy, '#bd00ff', 350);
-          addFloatingText(`🌌 BLACK HOLE +${Math.round(basePoints * mult)}!`, hx, hy - 25, '#bd00ff', 2.2);
-          triggerScreamer('COSMIC SINGULARITY!!', '#bd00ff');
-
-          if (!lowGraphics) {
-            gravityWells.push({ x: hx, y: hy, life: 1, spin: 0 });
-            // Seed the well with matter to swallow, thrown outward so it gets
-            // dragged back in rather than just falling straight to the middle.
-            for (let i = 0; i < 90; i++) {
-              const ang = Math.random() * Math.PI * 2;
-              const dist = 40 + Math.random() * 190;
-              const tangent = ang + Math.PI / 2;
-              const swirl = 2.2 + Math.random() * 2.4;
-              particles.push({
-                x: hx + Math.cos(ang) * dist,
-                y: hy + Math.sin(ang) * dist,
-                vx: Math.cos(tangent) * swirl,
-                vy: Math.sin(tangent) * swirl,
-                life: 1.0,
-                decay: 0.008 + Math.random() * 0.008,
-                color: i % 3 === 0 ? '#ffffff' : '#bd00ff',
-                size: Math.random() * 4 + 2
-              });
-            }
-          }
-
-          // Tether every remaining core to the singularity
-          foods.forEach(f => {
-            triggerLightning(hx, hy, f.x * GRID_SIZE + GRID_SIZE/2, f.y * GRID_SIZE + GRID_SIZE/2, '#bd00ff');
-          });
-
-        } else if (eaten.type === 'nuke') {
-          unlockAchievement('nuke_master');
-          if (++run.nukes >= 3) unlockAchievement('fallout');
-          if (run.nukes >= 10) unlockAchievement('mutually_assured');
-          playExtremeSound('eat_nuke');
-          basePoints = 100;
-          screenShake = 55;
-          chromaticAberration = 11;
-          cameraRotate = (Math.random() - 0.5) * 0.25;
-          cameraZoom = 1.2;
-          flashIntensity = 1.0;
-          rumbleGamepad(600, 1.0, 1.0);
-          spawnHyperExplosion(hx, hy, 160, ['#ff0033', '#ffee00', '#fff', '#ff5500'], 1.8);
-          addShockwave(hx, hy, '#ff0033', 400);
-          addFloatingText(`☢️ NUCLEAR OVERKILL +${Math.round(basePoints * mult)}!`, hx, hy - 25, '#ff0033', 2.4);
-          triggerScreamer('💥 APOCALYPTIC NUKE 💥', '#ff0033');
-
-          // Arc 4 corners
-          triggerLightning(hx, hy, 0, 0, '#ff0033');
-          triggerLightning(hx, hy, canvas.width, 0, '#ff0033');
-          triggerLightning(hx, hy, 0, canvas.height, '#ff0033');
-          triggerLightning(hx, hy, canvas.width, canvas.height, '#ff0033');
-
-        } else if (eaten.type === 'laser') {
-          if (++run.lasers >= 5) unlockAchievement('beam_architect');
-          if (run.lasers >= 15) unlockAchievement('beam_saturation');
-          playExtremeSound('eat_laser');
-          basePoints = 60;
-          screenShake = 25;
-          rumbleGamepad(180, 0.6, 0.3);
-          spawnHyperExplosion(hx, hy, 70, ['#00ffff', '#fff', '#0088ff']);
-          addShockwave(hx, hy, '#00ffff', 220);
-          addFloatingText(`⚡ LASER BURST +${Math.round(basePoints * mult)}!`, hx, hy - 20, '#00ffff', 1.8);
-
-          // Fire cross laser beams along whole row & col. Full-canvas beams with
-          // shadowBlur are the single most expensive effect here, so LOW skips them.
-          if (!lowGraphics) cosmicLasers.push({ x: hx, y: hy, life: 1.0, color: '#00ffff' });
-
-        } else if (eaten.type === 'super') {
-          playExtremeSound('eat_laser');
-          basePoints = 40;
-          screenShake = 20;
-          rumbleGamepad(140, 0.5, 0.4);
-          spawnHyperExplosion(hx, hy, 60, ['#ffee00', '#ff0055', '#fff']);
-          addShockwave(hx, hy, '#ffee00', 200);
-          addFloatingText(`⭐ HYPER STAR +${Math.round(basePoints * mult)}!`, hx, hy - 15, '#ffee00', 1.6);
-
-        } else {
-          playExtremeSound('eat_normal');
-          screenShake = 12;
-          rumbleGamepad(70, 0.3, 0.1);
-          spawnHyperExplosion(hx, hy, 35, ['#00ff66', '#00ffff', '#fff']);
-          addShockwave(hx, hy, '#00ff66', 130);
-          addFloatingText(`+${Math.round(basePoints * mult)}`, hx, hy - 10, '#00ff66', 1.3);
+        // Callouts go last so they win the screamer over whatever the chain
+        // shouted on the way through.
+        if (bite.links >= 2) {
+          triggerScreamer(`⛓️ CHAIN REACTION x${bite.links + 1} ⛓️`, '#ff00ff');
+          flashIntensity = Math.max(flashIntensity, 0.9);
+          screenShake = Math.max(screenShake, 60);
         }
-
-        const gained = Math.round(basePoints * mult);
+        if (bite.links >= 3) unlockAchievement('chain_reaction');
+        const tier = COMBO_TIERS.find(t => t.combo === combo);
+        if (tier) {
+          triggerScreamer(tier.text, tier.color);
+          playExtremeSound('fever_activate');
+          flashIntensity = Math.max(flashIntensity, 0.7);
+          chromaticAberration = Math.max(chromaticAberration, 9);
+          addShockwave(hx, hy, tier.color, 450);
+        }
         score += gained;
         scoreEl.textContent = score;
 
@@ -1984,9 +2008,11 @@
           storageSet('hyper_snake_omega_hi', highScore);
         }
 
-        // Keep 3 to 4 foods on screen
+        // Keep 3 to 4 foods on screen. A laser can clear several at once, so top
+        // up to 3 rather than replacing one for one. Bounded, since spawnFood is
+        // a no-op once the board is full.
         spawnFood();
-        if (foods.length < 3) spawnFood();
+        for (let i = 0; i < 3 && foods.length < 3; i++) spawnFood();
         if (Math.random() < 0.3) spawnFood();
 
       } else {
@@ -1994,9 +2020,218 @@
       }
     }
 
+    // Feeds the gauge, or during Fever tops up the clock (FEVER FRENZY), so a
+    // fast enough eater can keep it lit indefinitely.
+    function chargeFever(type) {
+      if (feverActive) {
+        feverTimeLeft = Math.min(feverDuration, feverTimeLeft + FEVER_EXTEND_MS);
+        return;
+      }
+      const big = type === 'nuke' || type === 'blackhole' || type === 'omega';
+      feverEnergy = Math.min(100, feverEnergy + (big ? 35 : 18));
+      if (feverEnergy >= 100) activateFeverMode();
+    }
+
+    // Sets off one core: its payout, its FX and whatever it does to the board.
+    // `link` is 0 for the core the snake ate and counts up along a chain: a
+    // laser detonates every core on its row and column, a nuke everything
+    // within NUKE_BLAST_RADIUS, an omega the whole board, and those go off in
+    // turn. Each core is pulled out of `foods` before it detonates, so a chain
+    // can't revisit one and always terminates. Returns the points it paid.
+    function detonate(f, bite, link) {
+      const mult = bite.mult + link * CHAIN_MULT_PER_LINK;
+      const own = Math.round(FOOD_POINTS[f.type] * mult);
+      const tag = link ? `⛓️x${link + 1} ` : '';
+      const fx = f.x * GRID_SIZE + GRID_SIZE / 2;
+      const fy = f.y * GRID_SIZE + GRID_SIZE / 2;
+      let pts = own;
+      let targets = [];
+      chargeFever(f.type);
+
+      if (f.type === 'blackhole') {
+        unlockAchievement('singularity');
+        if (++run.blackholes >= 3) unlockAchievement('event_horizon');
+        if (run.blackholes >= 5) unlockAchievement('gravity_addict');
+        playExtremeSound('eat_blackhole');
+        screenShake = Math.max(screenShake, 45);
+        chromaticAberration = Math.max(chromaticAberration, 8);
+        cameraZoom = Math.max(cameraZoom, 1.25);
+        flashIntensity = Math.max(flashIntensity, 0.9);
+        rumbleGamepad(450, 0.7, 1.0);
+        spawnHyperExplosion(fx, fy, 140, ['#bd00ff', '#00ffff', '#fff', '#ff00ff'], 1.5);
+        addShockwave(fx, fy, '#bd00ff', 350);
+        addFloatingText(`${tag}🌌 BLACK HOLE +${own}!`, fx, fy - 25, '#bd00ff', 2.2);
+        triggerScreamer('COSMIC SINGULARITY!!', '#bd00ff');
+
+        if (!lowGraphics) {
+          gravityWells.push({ x: fx, y: fy, life: 1, spin: 0 });
+          // Seed the well with matter to swallow, thrown outward so it gets
+          // dragged back in rather than just falling straight to the middle.
+          for (let i = 0; i < 90; i++) {
+            const ang = Math.random() * Math.PI * 2;
+            const dist = 40 + Math.random() * 190;
+            const tangent = ang + Math.PI / 2;
+            const swirl = 2.2 + Math.random() * 2.4;
+            particles.push({
+              x: fx + Math.cos(ang) * dist,
+              y: fy + Math.sin(ang) * dist,
+              vx: Math.cos(tangent) * swirl,
+              vy: Math.sin(tangent) * swirl,
+              life: 1.0,
+              decay: 0.008 + Math.random() * 0.008,
+              color: i % 3 === 0 ? '#ffffff' : '#bd00ff',
+              size: Math.random() * 4 + 2
+            });
+          }
+        }
+
+        gravityPull(bite.head);
+
+      } else if (f.type === 'nuke') {
+        unlockAchievement('nuke_master');
+        if (++run.nukes >= 3) unlockAchievement('fallout');
+        if (run.nukes >= 10) unlockAchievement('mutually_assured');
+        playExtremeSound('eat_nuke');
+        screenShake = Math.max(screenShake, 55);
+        chromaticAberration = Math.max(chromaticAberration, 11);
+        cameraRotate = (Math.random() - 0.5) * 0.25;
+        cameraZoom = Math.max(cameraZoom, 1.2);
+        flashIntensity = Math.max(flashIntensity, 1.0);
+        rumbleGamepad(600, 1.0, 1.0);
+        spawnHyperExplosion(fx, fy, 160, ['#ff0033', '#ffee00', '#fff', '#ff5500'], 1.8);
+        addShockwave(fx, fy, '#ff0033', 400);
+        addFloatingText(`${tag}☢️ NUCLEAR OVERKILL +${own}!`, fx, fy - 25, '#ff0033', 2.4);
+        triggerScreamer('💥 APOCALYPTIC NUKE 💥', '#ff0033');
+
+        // Arc 4 corners
+        triggerLightning(fx, fy, 0, 0, '#ff0033');
+        triggerLightning(fx, fy, canvas.width, 0, '#ff0033');
+        triggerLightning(fx, fy, 0, canvas.height, '#ff0033');
+        triggerLightning(fx, fy, canvas.width, canvas.height, '#ff0033');
+
+        pts += nukeTail(mult);
+        targets = foods.filter(t => Math.max(Math.abs(t.x - f.x), Math.abs(t.y - f.y)) <= NUKE_BLAST_RADIUS);
+
+      } else if (f.type === 'laser') {
+        if (++run.lasers >= 5) unlockAchievement('beam_architect');
+        if (run.lasers >= 15) unlockAchievement('beam_saturation');
+        playExtremeSound('eat_laser');
+        screenShake = Math.max(screenShake, 25);
+        rumbleGamepad(180, 0.6, 0.3);
+        spawnHyperExplosion(fx, fy, 70, ['#00ffff', '#fff', '#0088ff']);
+        addShockwave(fx, fy, '#00ffff', 220);
+        addFloatingText(`${tag}⚡ LASER BURST +${own}!`, fx, fy - 20, '#00ffff', 1.8);
+
+        // Fire cross laser beams along whole row & col. Full-canvas beams with
+        // shadowBlur are the single most expensive effect here, so LOW skips them.
+        if (!lowGraphics) cosmicLasers.push({ x: fx, y: fy, life: 1.0, color: '#00ffff' });
+
+        targets = foods.filter(t => t.x === f.x || t.y === f.y);
+
+      } else if (f.type === 'omega') {
+        unlockAchievement('omega');
+        playExtremeSound('fever_activate');
+        playExtremeSound('eat_nuke');
+        screenShake = Math.max(screenShake, 70);
+        chromaticAberration = Math.max(chromaticAberration, 14);
+        cameraZoom = Math.max(cameraZoom, 1.35);
+        cameraRotate = (Math.random() - 0.5) * 0.4;
+        flashIntensity = Math.max(flashIntensity, 1.0);
+        rumbleGamepad(900, 1.0, 1.0);
+        spawnHyperExplosion(fx, fy, 200, ['#ff0055', '#ffee00', '#00ff66', '#00ffff', '#bd00ff', '#fff'], 2);
+        addShockwave(fx, fy, '#ffffff', 520);
+        addShockwave(fx, fy, '#ff00ff', 380);
+        addFloatingText(`${tag}Ω OMEGA PROTOCOL +${own}!`, fx, fy - 25, '#ffffff', 2.4);
+        triggerScreamer('Ω OMEGA PROTOCOL Ω', '#ffffff');
+        // The big red button: everything else on the board goes off.
+        targets = foods.slice();
+
+      } else if (f.type === 'super') {
+        playExtremeSound('eat_laser');
+        screenShake = Math.max(screenShake, 20);
+        rumbleGamepad(140, 0.5, 0.4);
+        spawnHyperExplosion(fx, fy, 60, ['#ffee00', '#ff0055', '#fff']);
+        addShockwave(fx, fy, '#ffee00', 200);
+        addFloatingText(`${tag}⭐ HYPER STAR +${own}!`, fx, fy - 15, '#ffee00', 1.6);
+
+      } else {
+        playExtremeSound('eat_normal');
+        screenShake = Math.max(screenShake, 12);
+        rumbleGamepad(70, 0.3, 0.1);
+        spawnHyperExplosion(fx, fy, 35, ['#00ff66', '#00ffff', '#fff']);
+        addShockwave(fx, fy, '#00ff66', 130);
+        addFloatingText(`${tag}+${own}`, fx, fy - 10, '#00ff66', 1.3);
+      }
+
+      foods = foods.filter(t => !targets.includes(t));
+      targets.forEach(t => {
+        bite.links++;
+        triggerLightning(fx, fy, t.x * GRID_SIZE + GRID_SIZE / 2, t.y * GRID_SIZE + GRID_SIZE / 2, getFoodColor(f.type));
+        pts += detonate(t, bite, link + 1);
+      });
+      return pts;
+    }
+
+    // Drags every remaining core up to BLACKHOLE_PULL tiles towards the head,
+    // one king's move at a time, stopping short of anything in the way. The
+    // head is on the snake, so matter piles up next to it rather than on it.
+    function gravityPull(head) {
+      const occupied = new Set();
+      snake.forEach(s => occupied.add(s.y * TILE_COUNT + s.x));
+      foods.forEach(f => occupied.add(f.y * TILE_COUNT + f.x));
+      const hx = head.x * GRID_SIZE + GRID_SIZE / 2;
+      const hy = head.y * GRID_SIZE + GRID_SIZE / 2;
+
+      foods.forEach(f => {
+        const fromX = f.x, fromY = f.y;
+        for (let i = 0; i < BLACKHOLE_PULL; i++) {
+          const nx = f.x + Math.sign(head.x - f.x);
+          const ny = f.y + Math.sign(head.y - f.y);
+          if (occupied.has(ny * TILE_COUNT + nx)) break;
+          occupied.delete(f.y * TILE_COUNT + f.x);
+          occupied.add(ny * TILE_COUNT + nx);
+          f.x = nx;
+          f.y = ny;
+        }
+        // Draw offset back to where it was, eased to zero by the renderer, so
+        // the core visibly slides in instead of teleporting.
+        f.slideX = (fromX - f.x) * GRID_SIZE;
+        f.slideY = (fromY - f.y) * GRID_SIZE;
+        triggerLightning(hx, hy, f.x * GRID_SIZE + GRID_SIZE / 2, f.y * GRID_SIZE + GRID_SIZE / 2, '#bd00ff');
+      });
+    }
+
+    // Blows off NUKE_SEVER_FRACTION of everything past START_LENGTH. It's the
+    // only way to get shorter, so a nuke is a relief valve on a crowded board as
+    // much as a payout, and one worth dodging when going for length.
+    // Returns the points paid for the scorched segments.
+    function nukeTail(mult) {
+      const count = Math.floor((snake.length - START_LENGTH) * NUKE_SEVER_FRACTION);
+      if (count <= 0) return 0;
+      const severed = snake.splice(snake.length - count, count);
+      lenEl.textContent = snake.length;
+
+      // Detonate from the cut outwards to the old tail tip.
+      severed.forEach((seg, idx) => {
+        fxTimers.push(setTimeout(() => {
+          const sx = seg.x * GRID_SIZE + GRID_SIZE / 2;
+          const sy = seg.y * GRID_SIZE + GRID_SIZE / 2;
+          spawnHyperExplosion(sx, sy, 14, ['#ff0033', '#ffee00', '#ff5500', '#fff']);
+          addShockwave(sx, sy, '#ff5500', 70);
+        }, idx * 30));
+      });
+
+      const pts = Math.round(count * NUKE_POINTS_PER_SEGMENT * mult);
+      const cut = severed[0];
+      addFloatingText(`TAIL SCORCHED -${count} +${pts}`,
+        cut.x * GRID_SIZE + GRID_SIZE / 2, cut.y * GRID_SIZE, '#ff5500', 1.2);
+      return pts;
+    }
+
     function activateFeverMode() {
       feverActive = true;
       feverTimeLeft = feverDuration;
+      run.feverMs = 0;
       unlockAchievement('fever_starter');
       if (++run.fevers >= 3) unlockAchievement('perpetual');
       if (run.fevers >= 5) unlockAchievement('fever_dream');
@@ -2024,7 +2259,7 @@
 
       // Sequentially vaporize every single segment in an apocalyptic fireworks chain
       snake.forEach((seg, idx) => {
-        deathTimers.push(setTimeout(() => {
+        fxTimers.push(setTimeout(() => {
           const sx = seg.x * GRID_SIZE + GRID_SIZE / 2;
           const sy = seg.y * GRID_SIZE + GRID_SIZE / 2;
           if (!lowGraphics) {
@@ -2084,7 +2319,9 @@
       writeText(speedEl, 'speed', Math.round(speedScale * 100) + '%');
       if (speedScale >= 2.0) unlockAchievement('speed_demon');
       if (speedScale >= MAX_SPEED_SCALE) unlockAchievement('terminal_velocity');
-      if (gameStarted && !gameOver) {
+      const running = gameStarted && !gameOver && !pausedAt;
+      if (running) {
+        expireFoods(performance.now());
         const alive = performance.now() - run.startedAt;
         if (alive >= 120000) unlockAchievement('long_haul');
         if (alive >= 300000) unlockAchievement('marathoner');
@@ -2100,19 +2337,27 @@
         if (timestamp - lastTick >= currentTickRate) lastTick = timestamp;
       }
 
-      // Combo Decay
+      // Combo Decay. The bar under the multiplier is the window draining.
+      let comboLeft = 0;
       if (combo > 0) {
-        const elapsed = performance.now() - lastEatTimestamp;
+        const elapsed = (pausedAt || performance.now()) - lastEatTimestamp;
         if (elapsed > COMBO_WINDOW) {
           combo = 0;
           comboEl.textContent = '1.0x';
           comboCell.classList.remove('danger-glow');
+        } else {
+          comboLeft = 1 - elapsed / COMBO_WINDOW;
         }
       }
+      writeStyle(comboTimer, 'transform', 'comboTimer', `scaleX(${comboLeft.toFixed(2)})`);
 
       // FEVER GAUGE DYNAMICS
       if (feverActive) {
-        feverTimeLeft -= dt;
+        if (!pausedAt) {
+          feverTimeLeft -= dt;
+          run.feverMs += dt;
+          if (run.feverMs >= FEVER_ETERNAL_MS) unlockAchievement('fever_eternal');
+        }
         const progress = Math.max(0, feverTimeLeft / feverDuration);
         writeStyle(feverFill, 'width', 'feverW', (progress * 100) + '%');
         writeText(feverTxt, 'feverTxt', `⚡ FEVER ACTIVE: ${(Math.max(0, feverTimeLeft)/1000).toFixed(1)}s (GODMODE) ⚡`);
@@ -2251,25 +2496,27 @@
         ctx.restore();
       }
 
+      // Lasers, lightning and shockwaves all used a shadowBlur, which is a full
+      // filter pass per stroke: a chain reaction stacks dozens of them in one
+      // frame. They're stroked additively instead, a wide faint pass under a
+      // bright core, and the bloom pass right after puts the halo back.
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.lineCap = 'round';
+
       // Draw Laser Beams across whole canvas
       for (let i = cosmicLasers.length - 1; i >= 0; i--) {
         const beam = cosmicLasers[i];
-        ctx.save();
-        ctx.strokeStyle = beam.color;
-        ctx.lineWidth = 14 * beam.life;
-        ctx.shadowBlur = 35;
-        ctx.shadowColor = beam.color;
-        ctx.globalAlpha = beam.life;
         // Horizontal & Vertical cross beam
         ctx.beginPath();
         ctx.moveTo(0, beam.y); ctx.lineTo(canvas.width, beam.y);
         ctx.moveTo(beam.x, 0); ctx.lineTo(beam.x, canvas.height);
-        ctx.stroke();
-        ctx.restore();
+        glowStroke(14 * beam.life, beam.life, beam.color);
 
         beam.life -= 0.05 * step;
         if (beam.life <= 0) cosmicLasers.splice(i, 1);
       }
+      ctx.restore();
 
       // Snake Body Trail Sparkles
       if (!lowGraphics && gameStarted && !gameOver) {
@@ -2293,6 +2540,13 @@
 
       // Draw All Food Arsenals
       ctx.save();
+      // Frozen while paused, so the lifetime rings don't drain behind the overlay.
+      const foodClock = pausedAt || performance.now();
+      const slideDecay = decay(0.82);
+      foods.forEach(f => {
+        if (f.slideX) f.slideX = Math.abs(f.slideX) < 0.5 ? 0 : f.slideX * slideDecay;
+        if (f.slideY) f.slideY = Math.abs(f.slideY) < 0.5 ? 0 : f.slideY * slideDecay;
+      });
 
       // Halo pass first, additively, so the cores below stay crisp.
       if (!lowGraphics) {
@@ -2300,9 +2554,11 @@
         foods.forEach(f => {
           const pulse = Math.sin((timestamp * 0.012) + f.phase) * 5;
           const r = Math.max(4, GRID_SIZE / 2 - 2 + pulse) * 2.3;
+          ctx.globalAlpha = foodBlink(f, foodClock, timestamp);
           ctx.drawImage(getGlowSprite(getFoodColor(f.type)),
-            f.x * GRID_SIZE + GRID_SIZE / 2 - r, f.y * GRID_SIZE + GRID_SIZE / 2 - r, r * 2, r * 2);
+            foodPx(f.x, f.slideX) - r, foodPx(f.y, f.slideY) - r, r * 2, r * 2);
         });
+        ctx.globalAlpha = 1;
         ctx.globalCompositeOperation = 'source-over';
       }
 
@@ -2313,18 +2569,31 @@
       ctx.lineWidth = 3;
 
       foods.forEach(f => {
-        const fx = f.x * GRID_SIZE + GRID_SIZE / 2;
-        const fy = f.y * GRID_SIZE + GRID_SIZE / 2;
+        const fx = foodPx(f.x, f.slideX);
+        const fy = foodPx(f.y, f.slideY);
         const pulse = lowGraphics ? 0 : Math.sin((timestamp * 0.012) + f.phase) * 5;
         const r = Math.max(4, GRID_SIZE / 2 - 2 + pulse);
         const col = getFoodColor(f.type);
+        ctx.globalAlpha = foodBlink(f, foodClock, timestamp);
+
+        // Lifetime ring: drains clockwise from 12 o'clock as special matter runs
+        // out. It's gameplay information, so LOW draws it too.
+        if (f.ttl) {
+          const left = Math.max(0, 1 - (foodClock - f.born) / f.ttl);
+          ctx.strokeStyle = col;
+          ctx.beginPath();
+          ctx.arc(fx, fy, r + 6 + pulse, -Math.PI / 2, -Math.PI / 2 + left * Math.PI * 2);
+          ctx.stroke();
+        }
 
         // Rotating Energy Ring
         if (!lowGraphics) {
-          ctx.strokeStyle = col;
-          ctx.beginPath();
-          ctx.arc(fx, fy, r + 6 + pulse, 0, Math.PI * 2);
-          ctx.stroke();
+          if (!f.ttl) {
+            ctx.strokeStyle = col;
+            ctx.beginPath();
+            ctx.arc(fx, fy, r + 6 + pulse, 0, Math.PI * 2);
+            ctx.stroke();
+          }
 
           // Satellites, on the dangerous matter only, so a nuke reads differently
           // from a plain core at a glance rather than by colour alone.
@@ -2357,6 +2626,7 @@
         ctx.fillStyle = '#000';
         ctx.fillText(FOOD_SYMBOLS[f.type] || '★', fx, fy + 1);
       });
+      ctx.globalAlpha = 1;
       ctx.restore();
 
       // Draw Snake (Glowing Dragon with Laser Eyes). The halo used to be a
@@ -2426,21 +2696,18 @@
       ctx.restore();
 
       // Draw Lightning Bolts
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
       for (let i = lightningBolts.length - 1; i >= 0; i--) {
         const bolt = lightningBolts[i];
-        ctx.save();
-        ctx.strokeStyle = bolt.color;
-        ctx.lineWidth = 4 * bolt.life;
-        ctx.shadowBlur = 30;
-        ctx.shadowColor = bolt.color;
-        ctx.globalAlpha = bolt.life;
         ctx.beginPath();
         bolt.segments.forEach(seg => {
           ctx.moveTo(seg.x1, seg.y1);
           ctx.lineTo(seg.x2, seg.y2);
         });
-        ctx.stroke();
-        ctx.restore();
+        glowStroke(4 * bolt.life, bolt.life, bolt.color);
 
         bolt.life -= 0.07 * step;
         if (bolt.life <= 0) lightningBolts.splice(i, 1);
@@ -2449,21 +2716,15 @@
       // Draw Shockwaves
       for (let i = shockwaves.length - 1; i >= 0; i--) {
         const sw = shockwaves[i];
-        ctx.save();
         ctx.beginPath();
         ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
-        ctx.strokeStyle = sw.color;
-        ctx.lineWidth = 6 * sw.opacity;
-        ctx.globalAlpha = sw.opacity;
-        ctx.shadowBlur = 35;
-        ctx.shadowColor = sw.color;
-        ctx.stroke();
-        ctx.restore();
+        glowStroke(6 * sw.opacity, sw.opacity, sw.color);
 
         sw.radius += 10 * step;
         sw.opacity -= 0.035 * step;
         if (sw.opacity <= 0 || sw.radius >= sw.maxRadius) shockwaves.splice(i, 1);
       }
+      ctx.restore();
 
       // Draw Gravity Wells: a dark throat with a couple of accretion arcs
       // whipping round it. Drawn under the particles so the swallowed matter
@@ -2523,8 +2784,13 @@
         p.vy *= drag;
         p.life -= p.decay * step;
 
+        // Swap-remove: splice shifted the whole tail on every death, which went
+        // quadratic once a chain reaction put a couple of thousand on screen.
+        // Order doesn't matter under additive blending, and walking backwards
+        // means the element swapped in has already been stepped this frame.
         if (p.life <= 0) {
-          particles.splice(i, 1);
+          particles[i] = particles[particles.length - 1];
+          particles.pop();
           continue;
         }
 
@@ -2586,6 +2852,27 @@
         }
         ctx.fillText('PRESS ARROW / WASD / [A] BUTTON TO IGNITE', canvas.width / 2, canvas.height / 2 + 25);
         ctx.restore();
+      } else if (pausedAt) {
+        ctx.save();
+        ctx.fillStyle = 'rgba(2, 0, 10, 0.75)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.font = '900 40px "Black Ops One", sans-serif';
+        ctx.fillStyle = '#bd00ff';
+        if (!lowGraphics) {
+          ctx.shadowBlur = 40;
+          ctx.shadowColor = '#bd00ff';
+        }
+        ctx.textAlign = 'center';
+        ctx.fillText('⏸ STASIS LOCK ⏸', canvas.width / 2, canvas.height / 2 - 20);
+
+        ctx.font = '700 15px "Orbitron", sans-serif';
+        ctx.fillStyle = '#00ffff';
+        if (!lowGraphics) {
+          ctx.shadowColor = '#00ffff';
+        }
+        ctx.fillText('PRESS P / ESC / [START] TO RESUME', canvas.width / 2, canvas.height / 2 + 25);
+        ctx.restore();
       } else if (gameOver) {
         ctx.save();
         ctx.fillStyle = 'rgba(10, 0, 5, 0.88)';
@@ -2634,8 +2921,36 @@
       triggerScreamer('⚡ OVERDRIVE ENGAGED ⚡', '#00ffff');
     }
 
+    // Freezes a live run: logic ticks, the combo window, food lifetimes, the
+    // fever clock and the run clock. FX keep animating underneath the overlay.
+    function setPaused(on) {
+      if (!gameStarted || gameOver || on === !!pausedAt) return;
+      const now = performance.now();
+      if (on) {
+        pausedAt = now;
+        turnQueue.length = 0;
+        return;
+      }
+      const gap = now - pausedAt;
+      pausedAt = 0;
+      run.startedAt += gap;
+      lastEatTimestamp += gap;
+      foods.forEach(f => { f.born += gap; });
+      lastTick = now;
+    }
+
     function handleAction(key) {
       initAudio();
+
+      if (key === 'p' || key === 'P' || key === 'Escape') {
+        setPaused(!pausedAt);
+        return;
+      }
+      // Turns don't queue while paused, so nothing fires the moment it resumes.
+      if (pausedAt) {
+        if (key === ' ' || key === 'Enter') setPaused(false);
+        return;
+      }
 
       if (gameOver && (key === ' ' || key === 'Enter')) {
         resetGame();
@@ -2675,7 +2990,7 @@
         return;
       }
 
-      const allowed = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'w', 'a', 's', 'd', 'W', 'A', 'S', 'D', 'Enter'];
+      const allowed = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'w', 'a', 's', 'd', 'W', 'A', 'S', 'D', 'Enter', 'p', 'P', 'Escape'];
       if (allowed.includes(e.key)) {
         e.preventDefault();
         handleAction(e.key);
@@ -2687,6 +3002,12 @@
         e.preventDefault();
         handleAction(btn.getAttribute('data-key'));
       });
+    });
+
+    // A hidden tab stops requestAnimationFrame but not the wall clock, so coming
+    // back would find the combo gone, the food decayed and the snake mid-flight.
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) setPaused(true);
     });
 
     resetGame();

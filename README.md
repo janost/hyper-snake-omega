@@ -11,7 +11,7 @@
 [![Top language](https://img.shields.io/github/languages/top/janost/hyper-snake-omega?style=for-the-badge&color=ff0055&labelColor=120018)](index.html)
 
 [![ONE FILE](https://img.shields.io/badge/ONE_FILE-index.html-ff0055?style=for-the-badge&labelColor=120018)](index.html)
-[![LINES](https://img.shields.io/badge/LINES-2%2C697-ff5500?style=for-the-badge&labelColor=120018)](index.html)
+[![LINES](https://img.shields.io/badge/LINES-3%2C018-ff5500?style=for-the-badge&labelColor=120018)](index.html)
 [![DEPENDENCIES](https://img.shields.io/badge/DEPENDENCIES-0-00ff66?style=for-the-badge&labelColor=120018)](#-how-to-run-locally)
 [![BUILD STEP](https://img.shields.io/badge/BUILD_STEP-NONE-00ffff?style=for-the-badge&labelColor=120018)](#-how-to-run-locally)
 [![IMAGE ASSETS](https://img.shields.io/badge/IMAGE_ASSETS-0-bd00ff?style=for-the-badge&labelColor=120018)](#-the-fx-pipeline)
@@ -21,7 +21,7 @@
 [![THROTTLE](https://img.shields.io/badge/THROTTLE-FULL_GAS-ffee00?style=for-the-badge&labelColor=120018)](#-100-vibe-coded-zero-breaks-full-gas)
 [![BRAKES](https://img.shields.io/badge/BRAKES-NOT_FITTED-00ffff?style=for-the-badge&labelColor=120018)](#-100-vibe-coded-zero-breaks-full-gas)
 
-[![TROPHIES](https://img.shields.io/badge/TROPHIES-43-ffee00?style=for-the-badge&labelColor=120018)](#-43-persistent-achievements)
+[![TROPHIES](https://img.shields.io/badge/TROPHIES-46-ffee00?style=for-the-badge&labelColor=120018)](#-46-persistent-achievements)
 [![AUDIO](https://img.shields.io/badge/AUDIO-100%25_SYNTHESIZED-bd00ff?style=for-the-badge&labelColor=120018)](#-hardcore-procedural-audio-engine-web-audio-api)
 [![BPM](https://img.shields.io/badge/BPM-150-ff0055?style=for-the-badge&labelColor=120018)](#-hardcore-procedural-audio-engine-web-audio-api)
 [![GRID](https://img.shields.io/badge/GRID-20x20-00ff66?style=for-the-badge&labelColor=120018)](#-it-scales-to-anything-you-throw-at-it)
@@ -74,13 +74,22 @@ Nothing here is a sprite. Nothing here is an MP3. **Every pixel and every sound 
 
 </div>
 
-| ICON | ITEM | DISASTER LEVEL | WHAT HAPPENS |
-|---|---|---|---|
-| 🟢 | **Core Matter** | STANDARD | Basic fuel. Builds the combo streak. |
-| ⭐ | **Hyper Star** | ULTRA | High-multiplier score booster. Spawns explosive shock rings. |
-| ⚡ | **Laser Cross-Beam** | LETHAL | Dual laser beams flash across the full row and column you ate on. |
-| ☢️ | **Thermonuclear Nuke** | APOCALYPTIC | Screen-wide whiteout flash, 4-corner high-voltage lightning strikes, extreme screen violence. |
-| 🌌 | **Black Hole Singularity** | COSMIC EXTINCTION | Biggest score payout on the board. Arcs a violet gravity tether to every other food still on the grid. |
+| ICON | ITEM | PAYOUT | DISASTER LEVEL | WHAT HAPPENS |
+|---|---|---|---|---|
+| 🟢 | **Core Matter** | 10 | STANDARD | Basic fuel. Builds the combo streak. Never decays. |
+| ⭐ | **Hyper Star** | 40 | ULTRA | High-multiplier score booster. Spawns explosive shock rings. |
+| ⚡ | **Laser Cross-Beam** | 60 | LETHAL | Dual laser beams down the full row and column you ate on, and **every other core in the crossfire gets zapped and cashed out** at your current multiplier. |
+| ☢️ | **Thermonuclear Nuke** | 100 | APOCALYPTIC | Whiteout flash, 4-corner lightning, and **the blast blows off the back third of your tail**, +5 per scorched segment. The only way to get shorter. A relief valve when the board is choking you, and a hazard when you're chasing length. |
+| 🌌 | **Black Hole Singularity** | 150 | COSMIC EXTINCTION | **Drags every other core on the board up to 5 tiles toward your head.** Line up the feast, then eat your way through it. |
+| Ω | **Omega Core** | 250 | END OF ALL THINGS | Rare, 5-second fuse, cycles the whole rainbow. **Detonates every other core on the board at once.** The big red button. |
+
+Specials don't wait for you. Each one wears a **lifetime ring** that drains clockwise, blinks for its last two seconds, then the core decays and something new spawns elsewhere. The bigger the payout, the shorter the fuse: star 9s, laser 8s, nuke 7s, singularity 6s.
+
+### ⛓️ CHAIN REACTIONS
+
+Nothing here goes off politely. A laser **detonates** every core in its crossfire, a nuke detonates everything within 3 tiles, an omega detonates the board, and every one of those goes off in turn. Lasers fire their own beams, nukes torch your tail again, singularities pull again. Every link down the chain adds **+1.0x** to the multiplier, and three links in one bite screams **CHAIN REACTION** across the board.
+
+Hit a combo of 10, 20, 30 or 50 and the game announces it: **GODLIKE**, **BEYOND GODLIKE**, **COSMIC TERROR**, **OMEGA STREAK**.
 
 <details>
 <summary><b>🔬 Open the full-size shots</b></summary>
@@ -114,18 +123,19 @@ Fill your Overdrive gauge to 100% and the game stops pretending it has rules.
 - 🚀 **Invulnerability** against wall crashes (warp through the grid edge).
 - 👻 **Immunity** against eating your own tail.
 - ⚡ **2.0x Baseline Combo Multiplier** stacked on top of existing streaks.
+- ♾️ **FEVER FRENZY**: every core you detonate during Fever puts 1.2 seconds back on the clock. Eat fast enough and it never ends.
 - 🌈 **Full-Spectrum Chromatic Rainbow Dragon Trail**.
 - 💥 The bassline jumps an octave and the whole rig starts strobing.
 
-For eight seconds you are not playing snake. You are a rainbow freight train with no brakes and the walls are a suggestion.
+For eight seconds (or forever, if you keep feeding it) you are not playing snake. You are a rainbow freight train with no brakes and the walls are a suggestion.
 
 ---
 
-## 🏆 43 PERSISTENT ACHIEVEMENTS
+## 🏆 46 PERSISTENT ACHIEVEMENTS
 
 Tracked live in the cyber-sidebar and saved across sessions via `localStorage`. The unlocks themselves are permanent. The ones marked **per run** have to be earned inside a single life and their counters reset the moment you respawn; the ones marked **lifetime** tally across every run you have ever played.
 
-Forty-two of them are earnable. The forty-third is what you get for taking the other forty-two.
+Forty-five of them are earnable. The forty-sixth is what you get for taking the other forty-five.
 
 - 🩸 **FIRST BLOOD** — Devour your first cyber-matter core.
 - ⚡ **HYPER VELOCITY** — Reach a 5x combo streak.
@@ -169,6 +179,9 @@ Forty-two of them are earnable. The forty-third is what you get for taking the o
 - 🍔 **GLUTTON PRIME** — Devour 1,000 cores, **lifetime**.
 - 🎰 **HABITUAL** — Start 50 runs, **lifetime**.
 - 💀 **SISYPHUS** — Die 100 times, **lifetime**.
+- ⛓️ **CHAIN REACTION** — Set off 3 more cores with a single bite.
+- Ω **OMEGA PROTOCOL** — Detonate an omega core.
+- ♾️ **FEVER ETERNAL** — Keep one Fever alive for 30 seconds.
 - 🏆 **SINGULARITY COMPLETE** — Unlock every other trophy.
 
 ---
@@ -187,14 +200,18 @@ The soundtrack reacts to how well you are doing. Rack up a streak and the filter
 
 ## 🎮 CONTROLS & HARDWARE SUPPORT
 
-- ⌨️ **Keyboard**: Arrow Keys or WASD to steer, Space / Enter to restart, **F** for fullscreen.
+- ⌨️ **Keyboard**: Arrow Keys or WASD to steer, Space / Enter to restart, **P** / **Esc** to pause, **F** for fullscreen.
 - 🎮 **Xbox / Bluetooth Gamepad API**:
   - **D-Pad / Left Thumbstick**: Full 4-way navigation with analog deadzone filtering.
-  - **A / X / Start button**: Start game / Instant Respawn.
+  - **A / X / Start button**: Start game / Instant Respawn. Mid-run, **Start** pauses and **A / X** resume.
   - **Dual-Rumble Haptic Feedback**: Dynamic low/high-frequency motor vibration triggers on eating, nuke detonations, laser bursts, black holes, and deaths.
 - 📱 **Touch D-Pad**: Automatic on-screen touch overlay on phones & tablets.
 
 Plug a controller in and the pad **rumbles differently for every kind of death and every kind of pickup.** A nuke is not the same handful of vibration as a laser.
+
+Tab away and the game drops into **STASIS LOCK** on its own. The combo window, the food fuses, the fever clock and the run timer all freeze with it, so a pause never costs you a streak.
+
+The thin bar under **COMBO** is your streak draining. Eat before it empties or the multiplier resets.
 
 ---
 
@@ -221,6 +238,7 @@ Everything on the game canvas is drawn per frame from primitives. No sprites on 
 
 - **Bloom** — the scene is downsampled through a chain of halved buffers and composited back additively. The downsample *is* the blur.
 - **Glow sprites** — one radial-gradient sprite is baked per colour and blitted additively. Particles, the snake halo, food halos and the ambient starfield all come from the same cache.
+- **Glow strokes** — lasers, lightning and shockwaves are stroked additively as a wide faint halo under a hot core. No `shadowBlur` filter passes, so stacking a dozen of them in one chain stays cheap.
 - **Gravity wells** — a black hole pickup leaves a singularity that pulls every particle on inverse-square attraction until it collapses.
 - **The swallow** — eating sends a wave from the head to the tail, swelling each segment as it passes.
 - **Chromatic aberration** — opposed red/cyan drop-shadows on the whole rig, spiked by nukes, singularities, Fever and death.
@@ -235,7 +253,7 @@ Everything on the game canvas is drawn per frame from primitives. No sprites on 
 
 No design doc. No sprint board. No tickets. No stand-up. No architecture review. No "let's circle back on the particle budget."
 
-I sat down, put the throttle on the floor and never lifted off it. The synth engine, the bloom chain, the gravity wells, the 43-trophy tracker, the gamepad rumble curves, all of it got built in one continuous full-gas run on vibes alone. When something felt like it should exist, it went in. When it felt slow, it got faster. That was the entire process.
+I sat down, put the throttle on the floor and never lifted off it. The synth engine, the bloom chain, the gravity wells, the 46-trophy tracker, the gamepad rumble curves, all of it got built in one continuous full-gas run on vibes alone. When something felt like it should exist, it went in. When it felt slow, it got faster. That was the entire process.
 
 The whole thing is still one file. That was never the plan, it just never stopped being true.
 
